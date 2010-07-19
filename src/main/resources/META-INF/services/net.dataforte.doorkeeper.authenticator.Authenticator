@@ -1,0 +1,9 @@
+net.dataforte.doorkeeper.authenticator.basic.BasicAuthenticator
+net.dataforte.doorkeeper.authenticator.container.ContainerAuthenticator
+net.dataforte.doorkeeper.authenticator.cookie.CookieAuthenticator
+net.dataforte.doorkeeper.authenticator.digest.DigestAuthenticator
+net.dataforte.doorkeeper.authenticator.fake.FakeAuthenticator
+net.dataforte.doorkeeper.authenticator.form.FormAuthenticator
+net.dataforte.doorkeeper.authenticator.ntlm.NtlmAuthenticator
+net.dataforte.doorkeeper.authenticator.openid.OpenIDAuthenticator
+net.dataforte.doorkeeper.authenticator.spnego.SpnegoAuthenticator

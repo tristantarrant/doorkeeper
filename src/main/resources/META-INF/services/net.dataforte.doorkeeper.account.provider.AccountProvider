@@ -1,0 +1,3 @@
+net.dataforte.doorkeeper.account.provider.jdbc.JdbcAccountProvider
+net.dataforte.doorkeeper.account.provider.ldap.LdapAccountProvider
+net.dataforte.doorkeeper.account.provider.properties.PropertiesAccountProvider

@@ -1,0 +1,122 @@
+/**
+ * Copyright 2010 Tristan Tarrant
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * 	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package net.dataforte.doorkeeper.filter;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import net.dataforte.doorkeeper.AuthenticatorException;
+import net.dataforte.doorkeeper.AuthenticatorUser;
+import net.dataforte.doorkeeper.account.AccountManager;
+import net.dataforte.doorkeeper.authenticator.Authenticator;
+import net.dataforte.doorkeeper.authenticator.AuthenticatorToken;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class AuthenticatorFilter implements Filter {
+	private final static Logger log = LoggerFactory.getLogger(AuthenticatorFilter.class);
+	private static final String SESSION_USER = AuthenticatorUser.class.getName();
+	private List<Authenticator> authenticators;
+	private AccountManager accountManager;
+
+	@Override
+	public void init(FilterConfig filterConfig) throws ServletException {
+		if(log.isInfoEnabled()) {
+			log.info("Initializing AuthenticatorFilter...");
+		}
+		authenticators = new ArrayList<Authenticator>();
+		accountManager = new AccountManager();
+	}
+
+	@Override
+	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+		final HttpServletRequest req = (HttpServletRequest) request;
+		final HttpServletResponse res = (HttpServletResponse) response;
+		
+		// Get the session only if it exists already
+		HttpSession session = req.getSession(false);
+		
+		AuthenticatorUser user = null;
+		
+		
+		if (session != null) {
+			// Attempt to get user from session
+			user = (AuthenticatorUser) session.getAttribute(SESSION_USER);
+		}
+		// We still don't have a user
+		if (user == null) {
+			for (Authenticator auth : authenticators) {
+				AuthenticatorToken token = auth.negotiate(req, res);
+				switch(token.getState()) {
+				
+				case AUTHENTICATED:
+					// The authenticator has obtained a principal and has authenticated, so we just need to get the user's profile
+					session = req.getSession(true);
+					user = accountManager.load(token);
+					session.setAttribute(SESSION_USER, user);
+					break;
+				case NEGOTIATING:
+					// if the authenticator requires more steps to complete, return immediately
+					return;
+				case ACQUIRED:
+					// The authenticator has obtained principal and credentials but does not know how to validate them. We do it here
+					String principalName = token.getPrincipalName();
+					if (principalName != null) {
+						try {
+							user = accountManager.authenticate(token);
+						} catch (AuthenticatorException e) {
+							// Authentication failed, restart it
+							auth.restart(req, res);
+							return;
+						}
+					
+						session = req.getSession(true);
+						if (log.isDebugEnabled()) {
+							log.debug("User = " + principalName);
+						}
+						session.setAttribute(SESSION_USER, user);						
+						break;
+					} else {
+						// Authentication failed, restart it
+						auth.restart(req, res);
+						return;
+					}
+				}
+			}
+		}
+		chain.doFilter(new AuthenticatorRequestWrapper(req, user), response);
+	}
+
+	@Override
+	public void destroy() {
+		if(log.isInfoEnabled()) {
+			log.info("Shutting down AuthenticatorFilter...");
+		}
+	}
+
+}
