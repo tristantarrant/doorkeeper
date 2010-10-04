@@ -17,7 +17,7 @@ public class DoorkeeperTest {
 		
 		assertEquals(3, doorkeeper.getAccountProviders().size());
 		
-		assertEquals(1, doorkeeper.getAuthenticatorChain().size());
+		assertEquals(2, doorkeeper.getAuthenticatorChain().size());
 		
 		BasicAuthenticator authenticator = (BasicAuthenticator) doorkeeper.getAuthenticatorChain().get(0);
 		
