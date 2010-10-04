@@ -96,8 +96,9 @@ public class AuthenticatorFilter implements Filter {
 						if (log.isDebugEnabled()) {
 							log.debug("User = " + principalName);
 						}
-						session.setAttribute(SESSION_USER, user);						
-						break;
+						session.setAttribute(SESSION_USER, user);
+						auth.complete(req, res);
+						return;
 					} else {
 						// Authentication failed, restart it
 						auth.restart(req, res);

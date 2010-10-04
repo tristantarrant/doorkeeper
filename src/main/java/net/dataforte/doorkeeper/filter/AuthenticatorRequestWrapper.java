@@ -15,6 +15,8 @@
  */
 package net.dataforte.doorkeeper.filter;
 
+import java.security.Principal;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 
@@ -22,8 +24,47 @@ import net.dataforte.doorkeeper.AuthenticatorUser;
 
 public class AuthenticatorRequestWrapper extends HttpServletRequestWrapper {
 	
+	AuthenticatorUser user;
+	Principal prePrincipal;
+	String preRemoteUser;
+	
 	public AuthenticatorRequestWrapper(HttpServletRequest req, AuthenticatorUser user) {
 		super(req);
+		this.user = user;
+		this.prePrincipal = req.getUserPrincipal();
+		this.preRemoteUser = req.getRemoteUser();
+	}
+	
+	public String getRemoteUser() {
+		if (user != null) {
+			return user.getName();
+		} else {
+			return preRemoteUser;
+		}
+	}
+
+	public AuthenticatorUser getUser() {
+		return user;
+	}
+
+	public Principal getUserPrincipal() {
+		if(user!=null) {
+			return user;
+		} else {
+			return prePrincipal;
+		}
+	}
+
+	public String getAuthType() {
+		return "CW2P";
+	}
+
+	public boolean isUserInRole(String role) {
+		return user.isUserInRole(role);
+	}
+
+	public boolean isPreauthenticated() {
+		return this.prePrincipal != null || this.preRemoteUser != null;
 	}
 
 }

@@ -15,6 +15,8 @@
  */
 package net.dataforte.doorkeeper.authenticator;
 
+import java.io.IOException;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -39,6 +41,15 @@ public interface Authenticator {
 	 * @param request
 	 * @param response
 	 * @return
+	 * @throws IOException 
 	 */
-	public AuthenticatorToken restart(HttpServletRequest request, HttpServletResponse response);
+	AuthenticatorToken restart(HttpServletRequest request, HttpServletResponse response) throws IOException;
+
+	/**
+	 * 
+	 * @param req
+	 * @param res
+	 * @throws IOException 
+	 */
+	AuthenticatorToken complete(HttpServletRequest req, HttpServletResponse res) throws IOException;
 }

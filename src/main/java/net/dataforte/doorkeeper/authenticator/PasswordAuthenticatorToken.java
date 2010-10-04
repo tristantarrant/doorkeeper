@@ -17,7 +17,7 @@ package net.dataforte.doorkeeper.authenticator;
 
 public class PasswordAuthenticatorToken extends AuthenticatorToken {
 	String password;
-	
+
 	public PasswordAuthenticatorToken(String principalName, String password) {
 		super(AuthenticatorState.ACQUIRED, principalName);
 		this.password = password;
@@ -26,4 +26,5 @@ public class PasswordAuthenticatorToken extends AuthenticatorToken {
 	public String getPassword() {
 		return password;
 	}
+
 }

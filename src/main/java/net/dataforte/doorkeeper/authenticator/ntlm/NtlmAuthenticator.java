@@ -203,6 +203,11 @@ public class NtlmAuthenticator implements Authenticator {
 		}
 		return new AuthenticatorToken(AuthenticatorState.NEGOTIATING);
 	}
+	
+	@Override
+	public AuthenticatorToken complete(HttpServletRequest req, HttpServletResponse res) throws IOException {
+		return new AuthenticatorToken(AuthenticatorState.NONE);
+	}
 
 	public String getDefaultDomain() {
 		return defaultDomain;

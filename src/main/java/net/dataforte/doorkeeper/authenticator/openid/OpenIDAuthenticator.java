@@ -1,11 +1,14 @@
 package net.dataforte.doorkeeper.authenticator.openid;
 
+import java.io.IOException;
+
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import net.dataforte.doorkeeper.annotations.Property;
 import net.dataforte.doorkeeper.authenticator.Authenticator;
+import net.dataforte.doorkeeper.authenticator.AuthenticatorState;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorToken;
 
 @Property(name="name", value="openid")
@@ -32,4 +35,8 @@ public class OpenIDAuthenticator implements Authenticator {
 		return null;
 	}
 
+	@Override
+	public AuthenticatorToken complete(HttpServletRequest req, HttpServletResponse res) throws IOException {
+		return new AuthenticatorToken(AuthenticatorState.NONE);
+	}
 }

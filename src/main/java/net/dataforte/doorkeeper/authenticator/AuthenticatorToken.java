@@ -45,4 +45,9 @@ public class AuthenticatorToken {
 	public String getPrincipalName() {
 		return principalName;
 	}
+
+	@Override
+	public String toString() {
+		return "AuthenticatorToken [principalName=" + principalName + ", state=" + state + "]";
+	}
 }

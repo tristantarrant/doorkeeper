@@ -15,6 +15,8 @@
  */
 package net.dataforte.doorkeeper.authenticator.form;
 
+import java.io.IOException;
+
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -61,7 +63,14 @@ public class FormAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public AuthenticatorToken restart(HttpServletRequest request, HttpServletResponse response) {
+	public AuthenticatorToken restart(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		response.sendRedirect(this.loginFailUrl);
+		return new AuthenticatorToken(AuthenticatorState.NONE);
+	}
+	
+	@Override
+	public AuthenticatorToken complete(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		response.sendRedirect(this.loginSuccessUrl);
 		return new AuthenticatorToken(AuthenticatorState.NONE);
 	}
 
@@ -105,4 +114,7 @@ public class FormAuthenticator implements Authenticator {
 		this.loginFailUrl = loginFailUrl;
 	}
 
+	private String cleanURI(String uri) {
+		return uri.endsWith(securityCheckPath)?uri.substring(0, uri.length()-securityCheckPath.length()):uri;
+	}
 }

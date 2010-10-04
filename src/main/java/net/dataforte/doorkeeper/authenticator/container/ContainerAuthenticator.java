@@ -15,6 +15,8 @@
  */
 package net.dataforte.doorkeeper.authenticator.container;
 
+import java.io.IOException;
+
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -57,4 +59,8 @@ public class ContainerAuthenticator implements Authenticator {
 		return new AuthenticatorToken(AuthenticatorState.NONE);
 	}
 
+	@Override
+	public AuthenticatorToken complete(HttpServletRequest req, HttpServletResponse res) throws IOException {
+		return new AuthenticatorToken(AuthenticatorState.NONE);
+	}
 }

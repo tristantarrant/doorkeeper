@@ -34,4 +34,12 @@ public class AuthenticatorUser implements Principal, Serializable {
 		return name;
 	}
 
+	@Override
+	public String toString() {
+		return "AuthenticatorUser [name=" + name + "]";
+	}
+
+	public boolean isUserInRole(String role) {
+		return true; // TODO: implement authorization
+	}
 }
