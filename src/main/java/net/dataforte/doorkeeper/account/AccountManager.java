@@ -46,9 +46,13 @@ public class AccountManager {
 
 	public AuthenticatorUser load(AuthenticatorToken token) {
 		for(AccountProvider accountProvider : accountProviders) {
-			AuthenticatorUser user = accountProvider.load(token);
-			if(user!=null) {
-				return user;
+			try {
+				AuthenticatorUser user = accountProvider.load(token);
+				if(user!=null) {
+					return user;
+				}
+			} catch (AuthenticatorException e) {
+				// Ignore exceptions here
 			}
 		}
 		return null;

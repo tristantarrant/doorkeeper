@@ -15,12 +15,13 @@
  */
 package net.dataforte.doorkeeper.account.provider;
 
+import net.dataforte.doorkeeper.AuthenticatorException;
 import net.dataforte.doorkeeper.AuthenticatorUser;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorToken;
 
 public interface AccountProvider {
 
-	public AuthenticatorUser authenticate(AuthenticatorToken token);
+	public AuthenticatorUser authenticate(AuthenticatorToken token) throws AuthenticatorException;
 
-	public AuthenticatorUser load(AuthenticatorToken token);
+	public AuthenticatorUser load(AuthenticatorToken token) throws AuthenticatorException;
 }

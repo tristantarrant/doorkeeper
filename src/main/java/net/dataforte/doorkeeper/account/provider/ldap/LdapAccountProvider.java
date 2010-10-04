@@ -45,6 +45,7 @@ import javax.naming.ldap.PagedResultsResponseControl;
 import javax.naming.ldap.StartTlsRequest;
 import javax.naming.ldap.StartTlsResponse;
 
+import net.dataforte.doorkeeper.AuthenticatorException;
 import net.dataforte.doorkeeper.AuthenticatorUser;
 import net.dataforte.doorkeeper.account.provider.AccountProvider;
 import net.dataforte.doorkeeper.annotations.Property;
@@ -163,7 +164,8 @@ public class LdapAccountProvider implements AccountProvider {
 		this.memberOfAttribute = memberOfAttribute;
 	}
 
-	public AuthenticatorUser authenticate(AuthenticatorToken token) {
+	@Override
+	public AuthenticatorUser authenticate(AuthenticatorToken token) throws AuthenticatorException {
 		LdapContext ctx = null;
 		LdapContext ctx2 = null;
 
@@ -216,7 +218,7 @@ public class LdapAccountProvider implements AccountProvider {
 			}
 		} catch (Exception e) {
 			log.error("Error during LDAP authentication", e);
-			return null;
+			throw new AuthenticatorException(e);
 		} finally {
 			closeContexts(ctx2, ctx);
 		}

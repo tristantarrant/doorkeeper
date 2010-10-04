@@ -56,7 +56,7 @@ public class AuthenticatorRequestWrapper extends HttpServletRequestWrapper {
 	}
 
 	public String getAuthType() {
-		return "CW2P";
+		return "Doorkeeper";
 	}
 
 	public boolean isUserInRole(String role) {

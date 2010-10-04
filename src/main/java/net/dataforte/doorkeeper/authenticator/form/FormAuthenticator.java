@@ -21,6 +21,7 @@ import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import net.dataforte.commons.web.URLUtils;
 import net.dataforte.doorkeeper.annotations.Property;
 import net.dataforte.doorkeeper.authenticator.Authenticator;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorState;
@@ -64,13 +65,13 @@ public class FormAuthenticator implements Authenticator {
 
 	@Override
 	public AuthenticatorToken restart(HttpServletRequest request, HttpServletResponse response) throws IOException {
-		response.sendRedirect(this.loginFailUrl);
+		response.sendRedirect(URLUtils.urlRewrite(request, this.loginFailUrl));
 		return new AuthenticatorToken(AuthenticatorState.NONE);
 	}
 	
 	@Override
 	public AuthenticatorToken complete(HttpServletRequest request, HttpServletResponse response) throws IOException {
-		response.sendRedirect(this.loginSuccessUrl);
+		response.sendRedirect(URLUtils.urlRewrite(request, this.loginSuccessUrl));
 		return new AuthenticatorToken(AuthenticatorState.NONE);
 	}
 
