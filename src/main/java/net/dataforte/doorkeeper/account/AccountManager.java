@@ -25,17 +25,13 @@ import net.dataforte.doorkeeper.authenticator.AuthenticatorToken;
 public class AccountManager {
 	List<AccountProvider> accountProviders;
 	
-	public AccountManager() {
-		
+	public AccountManager(List<AccountProvider> accountProviderChain) {
+		this.accountProviders = accountProviderChain;
 	}
 
 	public List<AccountProvider> getAccountProviders() {
 		return accountProviders;
-	}
-
-	public void setAccountProviders(List<AccountProvider> accountProviders) {
-		this.accountProviders = accountProviders;
-	}
+	}	
 	
 	public AuthenticatorUser authenticate(AuthenticatorToken token) throws AuthenticatorException {
 		// cycle through all providers

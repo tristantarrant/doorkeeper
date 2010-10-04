@@ -13,6 +13,7 @@ import javax.annotation.PostConstruct;
 
 import net.dataforte.commons.resources.ResourceFinder;
 import net.dataforte.commons.resources.ServiceFinder;
+import net.dataforte.doorkeeper.account.AccountManager;
 import net.dataforte.doorkeeper.account.provider.AccountProvider;
 import net.dataforte.doorkeeper.annotations.Property;
 import net.dataforte.doorkeeper.authenticator.Authenticator;
@@ -33,19 +34,12 @@ public class Doorkeeper {
 
 	private List<Authenticator> authenticatorChain;
 	private List<AccountProvider> accountProviderChain;
+	private AccountManager accountManager;
 
 	public Doorkeeper() {
 		init();
 		load();
-	}
-
-	public Map<String, Class<? extends Authenticator>> getAuthenticators() {
-		return authenticators;
-	}
-
-	public Map<String, Class<? extends AccountProvider>> getAccountProviders() {
-		return accountProviders;
-	}
+	}	
 
 	/**
 	 * Scan the classpath for SPIs
@@ -57,16 +51,39 @@ public class Doorkeeper {
 
 		List<Class<? extends AccountProvider>> providerSPIs = ServiceFinder.findServices(AccountProvider.class);
 		processAnnotations(providerSPIs, accountProviders);
-		accountProviders = Collections.unmodifiableMap(accountProviders);
-
+		accountProviders = Collections.unmodifiableMap(accountProviders);		
+	}
+	
+	public Map<String, Class<? extends Authenticator>> getAuthenticators() {
+		return authenticators;
 	}
 
+	public Map<String, Class<? extends AccountProvider>> getAccountProviders() {
+		return accountProviders;
+	}
+	
+	/**
+	 * Retrieves the authenticator chain for the specified context
+	 */
+	public List<Authenticator> getAuthenticatorChain(String context) {
+		return authenticatorChain;
+	}
+
+	/**
+	 * Retrieves the full authenticator chain
+	 * 
+	 * @return
+	 */
 	public List<Authenticator> getAuthenticatorChain() {
 		return authenticatorChain;
 	}
 
 	public List<AccountProvider> getAccountProviderChain() {
 		return accountProviderChain;
+	}
+
+	public AccountManager getAccountManager() {
+		return accountManager;
 	}
 
 	/**
@@ -79,6 +96,8 @@ public class Doorkeeper {
 
 			authenticatorChain = buildChain(AUTHENTICATOR, props, authenticators);
 			accountProviderChain = buildChain(ACCOUNTPROVIDER, props, accountProviders);
+			
+			accountManager = new AccountManager(accountProviderChain);
 		} catch (Exception e) {
 			log.error("Could not load configuration '" + DOORKEEPER_PROPERTIES + "'", e);
 		}

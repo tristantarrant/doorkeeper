@@ -16,8 +16,6 @@
 package net.dataforte.doorkeeper.filter;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -31,7 +29,7 @@ import javax.servlet.http.HttpSession;
 
 import net.dataforte.doorkeeper.AuthenticatorException;
 import net.dataforte.doorkeeper.AuthenticatorUser;
-import net.dataforte.doorkeeper.account.AccountManager;
+import net.dataforte.doorkeeper.Doorkeeper;
 import net.dataforte.doorkeeper.authenticator.Authenticator;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorToken;
 
@@ -40,17 +38,16 @@ import org.slf4j.LoggerFactory;
 
 public class AuthenticatorFilter implements Filter {
 	private final static Logger log = LoggerFactory.getLogger(AuthenticatorFilter.class);
-	private static final String SESSION_USER = AuthenticatorUser.class.getName();
-	private List<Authenticator> authenticators;
-	private AccountManager accountManager;
+	private static final String SESSION_USER = AuthenticatorUser.class.getName();	
+	private Doorkeeper doorkeeper;
 
 	@Override
 	public void init(FilterConfig filterConfig) throws ServletException {
 		if(log.isInfoEnabled()) {
 			log.info("Initializing AuthenticatorFilter...");
 		}
-		authenticators = new ArrayList<Authenticator>();
-		accountManager = new AccountManager();
+		
+		doorkeeper = (Doorkeeper) filterConfig.getServletContext().getAttribute(Doorkeeper.class.getName());		
 	}
 
 	@Override
@@ -70,14 +67,14 @@ public class AuthenticatorFilter implements Filter {
 		}
 		// We still don't have a user
 		if (user == null) {
-			for (Authenticator auth : authenticators) {
+			for (Authenticator auth : doorkeeper.getAuthenticatorChain("filter")) {
 				AuthenticatorToken token = auth.negotiate(req, res);
 				switch(token.getState()) {
 				
 				case AUTHENTICATED:
 					// The authenticator has obtained a principal and has authenticated, so we just need to get the user's profile
 					session = req.getSession(true);
-					user = accountManager.load(token);
+					user = doorkeeper.getAccountManager().load(token);
 					session.setAttribute(SESSION_USER, user);
 					break;
 				case NEGOTIATING:
@@ -88,7 +85,7 @@ public class AuthenticatorFilter implements Filter {
 					String principalName = token.getPrincipalName();
 					if (principalName != null) {
 						try {
-							user = accountManager.authenticate(token);
+							user = doorkeeper.getAccountManager().authenticate(token);
 						} catch (AuthenticatorException e) {
 							// Authentication failed, restart it
 							auth.restart(req, res);

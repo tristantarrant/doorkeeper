@@ -21,6 +21,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedHashMap;
@@ -29,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import javax.annotation.PostConstruct;
 import javax.naming.Context;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -52,7 +54,7 @@ import net.dataforte.doorkeeper.authenticator.PasswordAuthenticatorToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Property(name="name", value="ldap")
+@Property(name = "name", value = "ldap")
 public class LdapAccountProvider implements AccountProvider {
 	private static final String COM_SUN_JNDI_LDAP_CONNECT_POOL = "com.sun.jndi.ldap.connect.pool";
 	private static final Logger log = LoggerFactory.getLogger(LdapAccountProvider.class);
@@ -69,8 +71,9 @@ public class LdapAccountProvider implements AccountProvider {
 	private boolean useTls;
 	private boolean paging;
 	private int pageSize;
-	private String uidAttribute;
+	private String uidAttribute = "uid";
 	private String memberOfAttribute;
+	private String memberAttribute = "member";
 	List<String> staticGroups;
 	private String[] userReturnedAttributes;
 	private Map<Pattern, String> ouMap;
@@ -86,6 +89,22 @@ public class LdapAccountProvider implements AccountProvider {
 
 	public void setUrl(String url) {
 		this.url = url;
+	}
+
+	public String getSearchBase() {
+		return searchBase;
+	}
+
+	public String getMemberAttribute() {
+		return memberAttribute;
+	}
+
+	public void setSearchBase(String searchBase) {
+		this.searchBase = searchBase;
+	}
+
+	public void setMemberAttribute(String memberAttribute) {
+		this.memberAttribute = memberAttribute;
 	}
 
 	public String getPrincipal() {
@@ -148,7 +167,7 @@ public class LdapAccountProvider implements AccountProvider {
 		LdapContext ctx = null;
 		LdapContext ctx2 = null;
 
-		PasswordAuthenticatorToken passwordToken = (PasswordAuthenticatorToken)token;
+		PasswordAuthenticatorToken passwordToken = (PasswordAuthenticatorToken) token;
 		try {
 			// Fetch the user from the cache
 			LdapEntry entry = (LdapEntry) cache.get(passwordToken.getPrincipalName());
@@ -205,13 +224,13 @@ public class LdapAccountProvider implements AccountProvider {
 
 	public AuthenticatorUser load(AuthenticatorToken token) {
 		// Check the cache first
-		LdapEntry entry = (LdapEntry)cache.get(token.getPrincipalName());
+		LdapEntry entry = (LdapEntry) cache.get(token.getPrincipalName());
 
 		if (entry != null) {
 			if (log.isDebugEnabled()) {
 				log.debug("Cache lookup for " + token.getPrincipalName() + " = " + entry);
 			}
-			if(entry!=NULL_USER) {
+			if (entry != NULL_USER) {
 				return new AuthenticatorUser(token.getPrincipalName());
 			} else {
 				return null;
@@ -239,7 +258,7 @@ public class LdapAccountProvider implements AccountProvider {
 				cache.put(token.getPrincipalName(), entry);
 
 				// Success, create/update the user on the underlying providers
-				
+
 				return new AuthenticatorUser(token.getPrincipalName());
 			}
 		} catch (NamingException e) {
@@ -248,7 +267,8 @@ public class LdapAccountProvider implements AccountProvider {
 		}
 	}
 
-	public boolean init() {
+	@PostConstruct
+	public void init() {
 		if (url == null) {
 			throw new RuntimeException("Parameter 'url' is required");
 		}
@@ -256,16 +276,23 @@ public class LdapAccountProvider implements AccountProvider {
 			throw new RuntimeException("Parameter 'searchBase' is required");
 		}
 		
-				attributeMap = new LinkedHashMap<String, String>();
+		cache = new HashMap<String, Object>();
+
+		attributeMap = new LinkedHashMap<String, String>();
 		// Add the uid attribute without a value
 		attributeMap.put(uidAttribute, null);
 		// Add the memberOf attribute without a value
-		attributeMap.put(memberOfAttribute, null);
+		if(memberOfAttribute!=null) {
+			attributeMap.put(memberOfAttribute, null);
+		}
 		// Build an array of attributes we want returned from LDAP
 		userReturnedAttributes = attributeMap.keySet().toArray(new String[attributeMap.size()]);
+		
+		ouMap = new HashMap<Pattern, String>();
 
 		// Inject the default settings into the hashtable
 		env = new Hashtable<String, String>();
+		env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
 		env.put(Context.PROVIDER_URL, url);
 		env.put(Context.SECURITY_AUTHENTICATION, "simple");
 		if (principal != null) {
@@ -276,8 +303,6 @@ public class LdapAccountProvider implements AccountProvider {
 		if (log.isInfoEnabled()) {
 			log.info("Initialized");
 		}
-
-		return true;
 	}
 
 	/**
@@ -374,13 +399,14 @@ public class LdapAccountProvider implements AccountProvider {
 										if (groupEntry.getKey().matcher(group).matches()) {
 											item.groups.add(groupEntry.getValue());
 										} else {
-											//FIXME: item.groups.remove(groupEntry.getValue());
+											// FIXME:
+											// item.groups.remove(groupEntry.getValue());
 										}
 									}
 								}
 								// Do not delete the user from groups which are
 								// also being added
-								//item.groups.removeAll(item.groups);
+								// item.groups.removeAll(item.groups);
 							} else {
 								// Otherwise retrieve the field mapping
 								String remappedAttribute = attributeMap.get(id);
@@ -478,7 +504,7 @@ public class LdapAccountProvider implements AccountProvider {
 	 * @return
 	 */
 	private static String byteToUUID(byte b[]) {
-		return String.format("%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x", b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7], b[8],
-				b[9], b[10], b[11], b[12], b[13], b[14], b[15]);
+		return String.format("%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x", b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7], b[8], b[9], b[10], b[11], b[12], b[13], b[14],
+				b[15]);
 	}
 }

@@ -19,7 +19,7 @@ public class PasswordAuthenticatorToken extends AuthenticatorToken {
 	String password;
 	
 	public PasswordAuthenticatorToken(String principalName, String password) {
-		super(principalName);
+		super(AuthenticatorState.ACQUIRED, principalName);
 		this.password = password;
 	}
 

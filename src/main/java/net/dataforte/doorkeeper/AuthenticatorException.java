@@ -23,6 +23,7 @@ public class AuthenticatorException extends Exception {
 	
 	public AuthenticatorException(String message, Throwable cause) {
 		super(message, cause);
+		
 	}
 
 }

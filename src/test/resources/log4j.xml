@@ -10,10 +10,6 @@
 		</layout>
 	</appender>
 	
-	<logger name="org.apache">
-		<level value="warn" />
-	</logger>
-	
 	<root>
 		<level value="debug" />
 		<appender-ref ref="console" />
