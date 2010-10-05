@@ -5,20 +5,18 @@ import javax.servlet.ServletContextListener;
 
 import net.dataforte.doorkeeper.Doorkeeper;
 
-public class DoorkeeperContextListener implements ServletContextListener {
+public class ContextListener implements ServletContextListener {
 	
 	static Doorkeeper doorkeeper;
 
 	@Override
 	public void contextInitialized(ServletContextEvent sce) {
-		doorkeeper = new Doorkeeper();
-		sce.getServletContext().setAttribute(Doorkeeper.class.getName(), doorkeeper);
+		doorkeeper = Doorkeeper.getInstance(sce.getServletContext());
 	}
 
 	@Override
 	public void contextDestroyed(ServletContextEvent sce) {
-		
-
+		doorkeeper.close();
 	}
 
 }

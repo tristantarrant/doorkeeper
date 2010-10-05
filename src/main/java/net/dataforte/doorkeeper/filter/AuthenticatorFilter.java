@@ -46,8 +46,7 @@ public class AuthenticatorFilter implements Filter {
 		if(log.isInfoEnabled()) {
 			log.info("Initializing AuthenticatorFilter...");
 		}
-		
-		doorkeeper = (Doorkeeper) filterConfig.getServletContext().getAttribute(Doorkeeper.class.getName());		
+		doorkeeper = Doorkeeper.getInstance(filterConfig.getServletContext());
 	}
 
 	@Override

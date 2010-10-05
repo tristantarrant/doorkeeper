@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import javax.annotation.PostConstruct;
+import javax.servlet.ServletContext;
 
 import net.dataforte.commons.resources.ResourceFinder;
 import net.dataforte.commons.resources.ServiceFinder;
@@ -39,7 +40,21 @@ public class Doorkeeper {
 	public Doorkeeper() {
 		init();
 		load();
-	}	
+	}
+	
+	/**
+	 * 
+	 * @param sc
+	 * @return
+	 */
+	public synchronized static Doorkeeper getInstance(ServletContext sc) {
+		Doorkeeper instance = (Doorkeeper) sc.getAttribute(Doorkeeper.class.getName());
+		if(instance==null) {
+			instance = new Doorkeeper();
+			sc.setAttribute(Doorkeeper.class.getName(), instance);
+		}
+		return instance;
+	}
 
 	/**
 	 * Scan the classpath for SPIs
@@ -165,5 +180,10 @@ public class Doorkeeper {
 				log.warn("SPI Class '" + spi.getName() + "' does not have a Property annotation");
 			}
 		}
+	}
+
+	public void close() {
+
+		
 	}
 }
