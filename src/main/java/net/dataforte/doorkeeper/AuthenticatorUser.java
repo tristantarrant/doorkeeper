@@ -17,6 +17,8 @@ package net.dataforte.doorkeeper;
 
 import java.io.Serializable;
 import java.security.Principal;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * 
@@ -24,14 +26,20 @@ import java.security.Principal;
  */
 public class AuthenticatorUser implements Principal, Serializable {
 	String name;
+	Set<String> groups;
 	
 	public AuthenticatorUser(String name) {
 		this.name = name;
+		this.groups = new HashSet<String>();
 	}
 
 	@Override
 	public String getName() {
 		return name;
+	}
+
+	public Set<String> getGroups() {
+		return groups;
 	}
 
 	@Override
@@ -40,6 +48,6 @@ public class AuthenticatorUser implements Principal, Serializable {
 	}
 
 	public boolean isUserInRole(String role) {
-		return true; // TODO: implement authorization
+		return groups.contains(role);
 	}
 }

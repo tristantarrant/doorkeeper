@@ -314,6 +314,12 @@ public class LdapAccountProvider implements AccountProvider {
 		}
 	}
 
+	@Override
+	public List<AuthenticatorUser> getUsersInGroup(String group) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	@PostConstruct
 	public void init() {
 		if (url == null) {

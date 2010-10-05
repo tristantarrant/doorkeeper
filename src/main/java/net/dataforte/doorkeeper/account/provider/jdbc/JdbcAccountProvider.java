@@ -1,5 +1,7 @@
 package net.dataforte.doorkeeper.account.provider.jdbc;
 
+import java.util.List;
+
 import javax.annotation.PostConstruct;
 
 import net.dataforte.doorkeeper.AuthenticatorUser;
@@ -62,4 +64,11 @@ public class JdbcAccountProvider implements AccountProvider {
 		return null;
 	}
 
+	@Override
+	public List<AuthenticatorUser> getUsersInGroup(String group) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	
 }

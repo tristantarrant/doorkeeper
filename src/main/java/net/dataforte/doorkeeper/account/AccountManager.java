@@ -15,6 +15,7 @@
  */
 package net.dataforte.doorkeeper.account;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import net.dataforte.doorkeeper.AuthenticatorException;
@@ -56,6 +57,12 @@ public class AccountManager {
 			}
 		}
 		return null;
+	}
+	
+	public List<AuthenticatorUser> getUsersInGroup(String groupName) {
+		List<AuthenticatorUser> users = new ArrayList<AuthenticatorUser>();
+		
+		return users;
 	}
 
 }

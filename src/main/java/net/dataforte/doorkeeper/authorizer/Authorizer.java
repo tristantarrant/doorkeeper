@@ -1,5 +1,7 @@
 package net.dataforte.doorkeeper.authorizer;
 
-public interface Authorizer {
+import net.dataforte.doorkeeper.AuthenticatorUser;
 
+public interface Authorizer {
+	boolean authorize(AuthenticatorUser user, String resourceName);
 }

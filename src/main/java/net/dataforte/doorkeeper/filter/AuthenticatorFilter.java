@@ -54,6 +54,8 @@ public class AuthenticatorFilter implements Filter {
 		final HttpServletRequest req = (HttpServletRequest) request;
 		final HttpServletResponse res = (HttpServletResponse) response;
 		
+		
+		/*** AUTHENTICATION PHASE ***/
 		// Get the session only if it exists already
 		HttpSession session = req.getSession(false);
 		
@@ -106,6 +108,8 @@ public class AuthenticatorFilter implements Filter {
 				}
 			}
 		}
+		/*** AUTHORIZATION PHASE ***/
+		
 		chain.doFilter(new AuthenticatorRequestWrapper(req, user), response);
 	}
 
