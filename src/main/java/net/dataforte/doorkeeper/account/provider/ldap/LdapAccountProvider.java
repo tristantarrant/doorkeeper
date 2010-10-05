@@ -49,6 +49,7 @@ import net.dataforte.doorkeeper.AuthenticatorException;
 import net.dataforte.doorkeeper.AuthenticatorUser;
 import net.dataforte.doorkeeper.account.provider.AccountProvider;
 import net.dataforte.doorkeeper.annotations.Property;
+import net.dataforte.doorkeeper.annotations.Required;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorToken;
 import net.dataforte.doorkeeper.authenticator.PasswordAuthenticatorToken;
 
@@ -65,6 +66,8 @@ public class LdapAccountProvider implements AccountProvider {
 	private Map<String, Object> cache;
 	private Hashtable<String, String> env;
 	private String searchBase;
+	private String userBase;
+	private String groupBase;
 	private String url;
 	private String principal;
 	private String credentials;
@@ -73,6 +76,7 @@ public class LdapAccountProvider implements AccountProvider {
 	private boolean paging;
 	private int pageSize;
 	private String uidAttribute = "uid";
+	private String groupAttribute = "cn";
 	private String memberOfAttribute;
 	private String memberAttribute = "member";
 	List<String> staticGroups;
@@ -84,6 +88,7 @@ public class LdapAccountProvider implements AccountProvider {
 
 	static final LdapEntry NULL_USER = new LdapEntry(null);
 
+	@Required
 	public String getUrl() {
 		return url;
 	}
@@ -92,16 +97,48 @@ public class LdapAccountProvider implements AccountProvider {
 		this.url = url;
 	}
 
+	/**
+	 * The DN of the search base under which users and groups will be searched
+	 * 
+	 * @return
+	 */
+	@Required
 	public String getSearchBase() {
 		return searchBase;
 	}
 
-	public String getMemberAttribute() {
-		return memberAttribute;
-	}
-
 	public void setSearchBase(String searchBase) {
 		this.searchBase = searchBase;
+	}
+
+	/**
+	 * The RDN, relative to the searchBase, where user entries are
+	 * 
+	 * @return
+	 */
+	public String getUserBase() {
+		return userBase;
+	}
+
+	/**
+	 * The RDN, relative to the searchBase, where group entries are
+	 * 
+	 * @return
+	 */
+	public String getGroupBase() {
+		return groupBase;
+	}
+
+	public void setUserBase(String userBase) {
+		this.userBase = userBase;
+	}
+
+	public void setGroupBase(String groupBase) {
+		this.groupBase = groupBase;
+	}
+
+	public String getMemberAttribute() {
+		return memberAttribute;
 	}
 
 	public void setMemberAttribute(String memberAttribute) {
@@ -154,6 +191,14 @@ public class LdapAccountProvider implements AccountProvider {
 
 	public void setUidAttribute(String uidAttribute) {
 		this.uidAttribute = uidAttribute;
+	}
+
+	public String getGroupAttribute() {
+		return groupAttribute;
+	}
+
+	public void setGroupAttribute(String groupAttribute) {
+		this.groupAttribute = groupAttribute;
 	}
 
 	public String getMemberOfAttribute() {
@@ -277,19 +322,19 @@ public class LdapAccountProvider implements AccountProvider {
 		if (searchBase == null) {
 			throw new RuntimeException("Parameter 'searchBase' is required");
 		}
-		
+
 		cache = new HashMap<String, Object>();
 
 		attributeMap = new LinkedHashMap<String, String>();
 		// Add the uid attribute without a value
 		attributeMap.put(uidAttribute, null);
 		// Add the memberOf attribute without a value
-		if(memberOfAttribute!=null) {
+		if (memberOfAttribute != null) {
 			attributeMap.put(memberOfAttribute, null);
 		}
 		// Build an array of attributes we want returned from LDAP
 		userReturnedAttributes = attributeMap.keySet().toArray(new String[attributeMap.size()]);
-		
+
 		ouMap = new HashMap<Pattern, String>();
 
 		// Inject the default settings into the hashtable
@@ -373,12 +418,12 @@ public class LdapAccountProvider implements AccountProvider {
 
 					// Add all static addGroups if necessary
 					if (staticGroups != null)
-						item.groups.addAll(staticGroups);
+						item.addGroups.addAll(staticGroups);
 
 					// Add addGroups determined by ou map
 					for (Map.Entry<Pattern, String> ouEntry : ouMap.entrySet()) {
 						if (ouEntry.getKey().matcher(item.dn).matches()) {
-							item.groups.add(ouEntry.getValue());
+							item.addGroups.add(ouEntry.getValue());
 						}
 					}
 
@@ -395,20 +440,7 @@ public class LdapAccountProvider implements AccountProvider {
 									groups.add(memberOf);
 								}
 
-								// Remap them using the groupMap
-								for (String group : groups) {
-									for (Map.Entry<Pattern, String> groupEntry : groupMap.entrySet()) {
-										if (groupEntry.getKey().matcher(group).matches()) {
-											item.groups.add(groupEntry.getValue());
-										} else {
-											// FIXME:
-											// item.groups.remove(groupEntry.getValue());
-										}
-									}
-								}
-								// Do not delete the user from groups which are
-								// also being added
-								// item.groups.removeAll(item.groups);
+								remapGroups(item, groups);
 							} else {
 								// Otherwise retrieve the field mapping
 								String remappedAttribute = attributeMap.get(id);
@@ -419,6 +451,10 @@ public class LdapAccountProvider implements AccountProvider {
 						}
 					}
 					closeEnumerations(ne);
+					
+					if(groupBase!=null) {
+						remapGroups(item, searchMembership(ctx, item.dn));
+					}
 
 					results.add(item);
 				}
@@ -445,6 +481,64 @@ public class LdapAccountProvider implements AccountProvider {
 		} finally {
 			closeEnumerations(en);
 		}
+	}
+
+	private Set<String> searchMembership(LdapContext ctx, String dn) {
+		NamingEnumeration<SearchResult> en = null;
+		Set<String> groups = new HashSet<String>();
+		try {
+			SearchControls searchCtls = new SearchControls();
+			searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+			if (paging) {
+				ctx.setRequestControls(new Control[] { new PagedResultsControl(pageSize, true) });
+			}
+
+			searchCtls.setReturningAttributes(new String[] { groupAttribute });
+			byte[] cookie = null;
+			do {
+				en = ctx.search(groupBase, String.format("(%s=%s)", memberAttribute, dn), searchCtls);
+				while (en != null && en.hasMoreElements()) {
+					SearchResult sr = en.nextElement();
+					groups.add(sr.getNameInNamespace());
+				}
+				closeEnumerations(en);
+
+				if (paging) {
+					Control[] responseControls = ctx.getResponseControls();
+					for (int i = 0; i < responseControls.length; i++) {
+						if (responseControls[i] instanceof PagedResultsResponseControl) {
+							cookie = ((PagedResultsResponseControl) responseControls[i]).getCookie();
+						}
+					}
+					if (cookie != null) {
+						ctx.setRequestControls(new Control[] { new PagedResultsControl(pageSize, cookie, true) });
+					}
+				}
+			} while (cookie != null);
+
+			return groups;
+		} catch (Exception e) {
+			log.error("Search error", e);
+			return null;
+		} finally {
+			closeEnumerations(en);
+		}
+	}
+	
+	private void remapGroups(LdapEntry item, Set<String> groups) {
+		// Remap them using the groupMap
+		for (String group : groups) {
+			for (Map.Entry<Pattern, String> groupEntry : groupMap.entrySet()) {
+				if (groupEntry.getKey().matcher(group).matches()) {
+					item.addGroups.add(groupEntry.getValue());
+				} else {
+					item.delGroups.add(groupEntry.getValue());
+				}
+			}
+		}
+		// Do not delete the user from groups which are
+		// also being added
+		item.delGroups.removeAll(item.addGroups);
 	}
 
 	private static void closeEnumerations(NamingEnumeration<?>... en) {

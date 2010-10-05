@@ -24,7 +24,8 @@ import java.util.Set;
 public class LdapEntry implements Serializable {
 	String dn;
 	public Map<String, String> attributes = new HashMap<String, String>();
-	public Set<String> groups = new HashSet<String>();
+	Set<String> addGroups = new HashSet<String>();
+	Set<String> delGroups = new HashSet<String>();
 	
 
 	public LdapEntry(String dn) {
@@ -33,7 +34,7 @@ public class LdapEntry implements Serializable {
 
 	@Override
 	public String toString() {
-		return "LdapEntry [dn=" + dn + ", attributes=" + attributes + ", groups=" + groups + "]";
+		return "LdapEntry [dn=" + dn + ", attributes=" + attributes + (addGroups != null ? ",addGroups=" + addGroups : "")+ (delGroups != null ? ",delGroups=" + delGroups : "") + "]";
 	}
 
 }
