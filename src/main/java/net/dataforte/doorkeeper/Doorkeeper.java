@@ -198,7 +198,7 @@ public class Doorkeeper {
 		return Collections.unmodifiableList(spiChain);
 	}
 	
-	private static Map<String, Object> json2map(String s) throws JSONException {
+	public static Map<String, ?> json2map(String s) throws JSONException {
 		JSONObject json = new JSONObject(s);
 		Map<String, Object> map = new LinkedHashMap<String, Object>();
 		for(Iterator<String> it = json.keys(); it.hasNext(); ) {
@@ -212,7 +212,7 @@ public class Doorkeeper {
 				for(int i=0; i<a.length(); i++) {
 					l.add(a.getString(i));
 				}
-				
+				map.put(key, l);
 			}
 		}
 		return map;

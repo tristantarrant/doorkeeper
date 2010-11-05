@@ -41,7 +41,7 @@ public class RegexAuthorizer implements Authorizer {
 		for (Entry<Pattern, List<String>> acl : aclMap.entrySet()) {
 			if (acl.getKey().matcher(resourceName).matches()) {
 				if(log.isDebugEnabled()) {
-					log.debug("Found pattern for {0}", resourceName);
+					log.debug("Found pattern for {}", resourceName);
 				}
 				HashSet<String> set = new HashSet<String>(acl.getValue());
 				set.retainAll(user.getGroups());
