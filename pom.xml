@@ -31,6 +31,14 @@
 		<developerConnection>scm:svn:http://dataforte.dyndns.org/svn/dataforte/doorkeeper/trunk/</developerConnection>
 		<url>http://dataforte.dyndns.org/websvn/listing.php?repname=dataforte&amp;path=/doorkeeper/trunk/</url>
 	</scm>
+	
+	<distributionManagement>
+		<site>
+			<id>ftp.dataforte.net</id>
+			<name>Dataforte site</name>
+			<url>ftp://ftp.dataforte.net/www.dataforte.net/software/${project.artifactId}</url>
+		</site>
+	</distributionManagement>
 
 	<dependencies>
 		<dependency>
