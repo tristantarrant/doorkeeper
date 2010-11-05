@@ -5,6 +5,8 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -21,6 +23,9 @@ import net.dataforte.doorkeeper.authenticator.Authenticator;
 import net.dataforte.doorkeeper.authorizer.Authorizer;
 
 import org.apache.commons.beanutils.PropertyUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -141,7 +146,7 @@ public class Doorkeeper {
 	}
 
 	private static <T> List<T> buildChain(String prefix, Properties props, Map<String, Class<? extends T>> spiMap) throws InstantiationException, IllegalAccessException, InvocationTargetException,
-			NoSuchMethodException {
+			NoSuchMethodException, JSONException {
 		String chainName = prefix + ".chain";
 		if (!props.containsKey(chainName)) {
 			throw new IllegalStateException("Missing '" + chainName + "' property in configuration file");
@@ -170,7 +175,14 @@ public class Doorkeeper {
 				for (String propertyName : props.stringPropertyNames()) {
 					if (propertyName.startsWith(propertyPrefix)) {
 						String name = propertyName.substring(propertyPrefix.length());
-						PropertyUtils.setProperty(spi, name, props.getProperty(propertyName));
+						Class<?> propertyType = PropertyUtils.getPropertyType(spi, name);
+						if(String.class==propertyType) {
+							PropertyUtils.setProperty(spi, name, props.getProperty(propertyName));
+						} else if(Map.class==propertyType) {
+							PropertyUtils.setProperty(spi, name, json2map(props.getProperty(propertyName)));
+						} else {
+							log.warn("Unhandled property {} on class {}", name, spiType);
+						}
 					}
 				}
 				// Invoke the PostConstruct methods
@@ -184,6 +196,26 @@ public class Doorkeeper {
 			}
 		}
 		return Collections.unmodifiableList(spiChain);
+	}
+	
+	private static Map<String, Object> json2map(String s) throws JSONException {
+		JSONObject json = new JSONObject(s);
+		Map<String, Object> map = new LinkedHashMap<String, Object>();
+		for(Iterator<String> it = json.keys(); it.hasNext(); ) {
+			String key = it.next();
+			Object value = json.get(key);
+			if(value.getClass()==String.class) {
+				map.put(key, value);
+			} else if(value.getClass()==JSONArray.class) {
+				List<String> l = new ArrayList<String>();
+				JSONArray a = (JSONArray)value;
+				for(int i=0; i<a.length(); i++) {
+					l.add(a.getString(i));
+				}
+				
+			}
+		}
+		return map;
 	}
 
 	/**

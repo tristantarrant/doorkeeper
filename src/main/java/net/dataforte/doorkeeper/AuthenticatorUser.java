@@ -17,7 +17,9 @@ package net.dataforte.doorkeeper;
 
 import java.io.Serializable;
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -27,10 +29,12 @@ import java.util.Set;
 public class AuthenticatorUser implements Principal, Serializable {
 	String name;
 	Set<String> groups;
+	Map<String, String[]> properties;
 	
 	public AuthenticatorUser(String name) {
 		this.name = name;
 		this.groups = new HashSet<String>();
+		this.properties = new HashMap<String, String[]>();
 	}
 
 	@Override
@@ -50,4 +54,11 @@ public class AuthenticatorUser implements Principal, Serializable {
 	public boolean isUserInRole(String role) {
 		return groups.contains(role);
 	}
+	
+	public String getPropertyValue(String propertyName) {
+		String[] v = properties.get(propertyName);
+		return v.length==0?null:v[0];
+	}
+	
+	
 }

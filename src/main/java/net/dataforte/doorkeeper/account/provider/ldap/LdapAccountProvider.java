@@ -83,7 +83,7 @@ public class LdapAccountProvider implements AccountProvider {
 	private String[] userReturnedAttributes;
 	private Map<Pattern, String> ouMap;
 	private Map<Pattern, String> groupMap;
-	private Map<String, String> attributeMap;
+	private Map<String, String> attributeMap = new LinkedHashMap<String, String>();
 	private DateFormat serverDateFormat;
 
 	static final LdapEntry NULL_USER = new LdapEntry(null);
@@ -209,6 +209,14 @@ public class LdapAccountProvider implements AccountProvider {
 		this.memberOfAttribute = memberOfAttribute;
 	}
 
+	public Map<String, String> getAttributeMap() {
+		return attributeMap;
+	}
+
+	public void setAttributeMap(Map<String, String> attributeMap) {
+		this.attributeMap = attributeMap;
+	}
+
 	@Override
 	public AuthenticatorUser authenticate(AuthenticatorToken token) throws AuthenticatorException {
 		LdapContext ctx = null;
@@ -330,8 +338,7 @@ public class LdapAccountProvider implements AccountProvider {
 		}
 
 		cache = new HashMap<String, Object>();
-
-		attributeMap = new LinkedHashMap<String, String>();
+		
 		// Add the uid attribute without a value
 		attributeMap.put(uidAttribute, null);
 		// Add the memberOf attribute without a value
@@ -457,8 +464,8 @@ public class LdapAccountProvider implements AccountProvider {
 						}
 					}
 					closeEnumerations(ne);
-					
-					if(groupBase!=null) {
+
+					if (groupBase != null) {
 						remapGroups(item, searchMembership(ctx, item.dn));
 					}
 
@@ -530,7 +537,7 @@ public class LdapAccountProvider implements AccountProvider {
 			closeEnumerations(en);
 		}
 	}
-	
+
 	private void remapGroups(LdapEntry item, Set<String> groups) {
 		// Remap them using the groupMap
 		for (String group : groups) {

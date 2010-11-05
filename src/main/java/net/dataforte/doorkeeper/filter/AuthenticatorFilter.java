@@ -32,6 +32,7 @@ import net.dataforte.doorkeeper.AuthenticatorUser;
 import net.dataforte.doorkeeper.Doorkeeper;
 import net.dataforte.doorkeeper.authenticator.Authenticator;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorToken;
+import net.dataforte.doorkeeper.authorizer.Authorizer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,6 +110,12 @@ public class AuthenticatorFilter implements Filter {
 			}
 		}
 		/*** AUTHORIZATION PHASE ***/
+		for(Authorizer auth : doorkeeper.getAuthorizerChain("filter")) {
+			if(!auth.authorize(user, req.getRequestURI())) {
+				res.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+				return;
+			}
+		}
 		
 		chain.doFilter(new AuthenticatorRequestWrapper(req, user), response);
 	}
