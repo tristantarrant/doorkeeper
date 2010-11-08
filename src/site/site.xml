@@ -1,24 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <project xmlns="http://maven.apache.org/DECORATION/1.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/DECORATION/1.0.0 http://maven.apache.org/xsd/decoration-1.0.0.xsd" name="too-onebee">
-  <bannerLeft>
-    <name>Too-OneBee</name>
-  </bannerLeft>
-  
-  <bannerRight>
-  	<src>images/2-1B.png</src>
-  </bannerRight>
-  
-  <body>
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/DECORATION/1.0.0 http://maven.apache.org/xsd/decoration-1.0.0.xsd"
+	name="doorkeeper">
+	<bannerLeft>
+		<name>Doorkeeper</name>
+	</bannerLeft>
 
-    <menu name="Too-OneBee">
-      <item name="Introduction" href="index.html"/>
-    </menu>
-    
-    <menu name="Information" ref="reports" />
-    	
+	<bannerRight>
+		<src>images/logo.png</src>
+	</bannerRight>
 
-  </body>
+	<body>
+
+		<menu name="Doorkeeper">
+			<item name="Introduction" href="index.html" />
+		</menu>
+
+		<menu name="Information" ref="reports" />
+	</body>
 </project>
