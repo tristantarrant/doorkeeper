@@ -17,6 +17,10 @@ package net.dataforte.doorkeeper;
 
 public class AuthenticatorException extends Exception {
 	
+	public AuthenticatorException(String message) {
+		super(message);
+	}
+	
 	public AuthenticatorException(Throwable cause) {
 		super(cause);
 	}

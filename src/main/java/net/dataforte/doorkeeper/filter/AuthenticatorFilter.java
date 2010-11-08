@@ -109,10 +109,10 @@ public class AuthenticatorFilter implements Filter {
 				}
 			}
 		}
-		/*** AUTHORIZATION PHASE ***/
+		/*** AUTHORIZATION PHASE ***/		
 		for(Authorizer auth : doorkeeper.getAuthorizerChain("filter")) {
-			if(!auth.authorize(user, req.getRequestURI())) {
-				res.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+			if(!auth.authorize(user, req.getServletPath())) {
+				res.sendError(HttpServletResponse.SC_FORBIDDEN);
 				return;
 			}
 		}

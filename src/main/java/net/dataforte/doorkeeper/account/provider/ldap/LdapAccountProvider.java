@@ -331,10 +331,10 @@ public class LdapAccountProvider implements AccountProvider {
 	@PostConstruct
 	public void init() {
 		if (url == null) {
-			throw new RuntimeException("Parameter 'url' is required");
+			throw new IllegalStateException("Parameter 'url' is required");
 		}
 		if (searchBase == null) {
-			throw new RuntimeException("Parameter 'searchBase' is required");
+			throw new IllegalStateException("Parameter 'searchBase' is required");
 		}
 
 		cache = new HashMap<String, Object>();

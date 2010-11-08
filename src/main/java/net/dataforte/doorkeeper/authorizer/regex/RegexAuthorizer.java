@@ -1,5 +1,6 @@
 package net.dataforte.doorkeeper.authorizer.regex;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -44,7 +45,7 @@ public class RegexAuthorizer implements Authorizer {
 					log.debug("Found pattern for {}", resourceName);
 				}
 				HashSet<String> set = new HashSet<String>(acl.getValue());
-				set.retainAll(user.getGroups());
+				set.retainAll(user!=null?user.getGroups():Collections.EMPTY_SET);
 				return set.size() > 0;
 			}
 		}
