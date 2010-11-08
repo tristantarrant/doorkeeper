@@ -1,0 +1,11 @@
+Doorkeeper
+
+Doorkeeper is a J2EE library which provides an authentication and authorization framework which is easy to configure and use within web applications
+
+Its main features are
+
+    * Multiple authenticators (Basic, Digest, Form, Ajax, NTLM, Cookie, SPNEGO/Kerberos, Container)
+    * Multiple account providers (LDAP, JDBC, Properties files)
+    * Multiple authorizers (Regex, Taglib)
+    
+It is currently not complete.
