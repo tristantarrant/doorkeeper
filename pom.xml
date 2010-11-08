@@ -8,7 +8,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.dataforte</groupId>
 	<artifactId>doorkeeper</artifactId>
-	<version>0.3.0-SNAPSHOT</version>
+	<version>0.3.0</version>
 	<packaging>jar</packaging>
 	<name>Doorkeeper</name>
 	<url>http://www.dataforte.net/software/${project.artifactId}</url>
@@ -27,9 +27,9 @@
 	</description>
 
 	<scm>
-		<connection>scm:svn:http://dataforte.dyndns.org/svn/dataforte/doorkeeper/trunk/</connection>
-		<developerConnection>scm:svn:http://dataforte.dyndns.org/svn/dataforte/doorkeeper/trunk/</developerConnection>
-		<url>http://dataforte.dyndns.org/websvn/listing.php?repname=dataforte&amp;path=/doorkeeper/trunk/</url>
+		<connection>scm:svn:http://dataforte.dyndns.org/svn/dataforte/doorkeeper/tags/doorkeeper-0.3.0</connection>
+		<developerConnection>scm:svn:http://dataforte.dyndns.org/svn/dataforte/doorkeeper/tags/doorkeeper-0.3.0</developerConnection>
+		<url>http://dataforte.dyndns.org/websvn/listing.php?repname=dataforte&amp;path=/doorkeeper/tags/doorkeeper-0.3.0?repname=dataforte&amp;path=/doorkeeper/trunk/</url>
 	</scm>
 	
 	<distributionManagement>
