@@ -22,6 +22,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import net.dataforte.doorkeeper.authorizer.Authorizer;
+
 /**
  * 
  * @author Tristan Tarrant
@@ -34,6 +36,7 @@ public class AuthenticatorUser implements Principal, Serializable {
 	public AuthenticatorUser(String name) {
 		this.name = name;
 		this.groups = new HashSet<String>();
+		this.groups.add(Authorizer.IS_AUTHENTICATED);
 		this.properties = new HashMap<String, String[]>();
 	}
 
