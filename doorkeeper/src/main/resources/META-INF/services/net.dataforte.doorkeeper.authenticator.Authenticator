@@ -6,4 +6,5 @@ net.dataforte.doorkeeper.authenticator.fake.FakeAuthenticator
 net.dataforte.doorkeeper.authenticator.form.FormAuthenticator
 net.dataforte.doorkeeper.authenticator.ntlm.NtlmAuthenticator
 net.dataforte.doorkeeper.authenticator.openid.OpenIDAuthenticator
+net.dataforte.doorkeeper.authenticator.rest.RestAuthenticator
 net.dataforte.doorkeeper.authenticator.spnego.SpnegoAuthenticator
