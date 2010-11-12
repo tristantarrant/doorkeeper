@@ -1,9 +1,9 @@
 package net.dataforte.doorkeeper.authorizer.regex;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -20,32 +20,36 @@ import org.slf4j.LoggerFactory;
 public class RegexAuthorizer implements Authorizer {
 	final Logger log = LoggerFactory.getLogger(RegexAuthorizer.class);
 
-	Map<Pattern, List<String>> aclMap;
+	Map<Pattern, Set<String>> aclMap;
 
 	public RegexAuthorizer() {
-		aclMap = new LinkedHashMap<Pattern, List<String>>();
+		aclMap = new LinkedHashMap<Pattern, Set<String>>();
 	}
 
-	public Map<Pattern, List<String>> getAclMap() {
+	public Map<Pattern, Set<String>> getAclMap() {
 		return aclMap;
 	}
 
-	public void setAclMap(Map<String, List<String>> aclMap) {
+	public void setAclMap(Map<String, Collection<String>> aclMap) {
 		
 		this.aclMap.clear();
-		for(Entry<String, List<String>> acl : aclMap.entrySet()) {
-			this.aclMap.put(Pattern.compile(acl.getKey()), acl.getValue());
+		for(Entry<String, Collection<String>> acl : aclMap.entrySet()) {
+			this.aclMap.put(Pattern.compile(acl.getKey()), new HashSet<String>( acl.getValue()));
 		}
 	}
 
 	@Override
 	public boolean authorize(AuthenticatorUser user, String resourceName) {
-		for (Entry<Pattern, List<String>> acl : aclMap.entrySet()) {
+		for (Entry<Pattern, Set<String>> acl : aclMap.entrySet()) {
 			if (acl.getKey().matcher(resourceName).matches()) {
 				if(log.isDebugEnabled()) {
 					log.debug("Found pattern for {}", resourceName);
 				}
-				Set<String> set = new HashSet<String>(acl.getValue());				
+				Set<String> set = acl.getValue();
+				// If the pattern allows all access, return immediately
+				if(set.contains(Authorizer.ALLOW_ALL)) {
+					return true;
+				}
 				Set<String> userSet = null;
 				if(user==null) {
 					userSet = Collections.emptySet();
