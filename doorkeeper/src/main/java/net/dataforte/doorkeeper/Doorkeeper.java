@@ -1,5 +1,6 @@
 package net.dataforte.doorkeeper;
 
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -46,9 +47,32 @@ public class Doorkeeper {
 	private List<AccountProvider> accountProviderChain;
 	private AccountManager accountManager;
 
+	/**
+	 * Default constructor which looks for a doorkeeper.properties file in the classpath
+	 */
 	public Doorkeeper() {
 		init();
-		load();
+		load(ResourceFinder.getResource(DOORKEEPER_PROPERTIES));
+	}
+	
+	/**
+	 * Constructor which reads the configuration properties from the specified {@link InputStream}
+	 *  
+	 * @param propertiesStream
+	 */
+	public Doorkeeper(InputStream propertiesStream) {
+		init();
+		load(propertiesStream);
+	}
+	
+	/**
+	 * Constructor which reads the configuration properties from the specified filename
+	 * 
+	 * @param propertiesFileName
+	 */
+	public Doorkeeper(String propertiesFileName) {
+		init();
+		load(ResourceFinder.getResource(propertiesFileName));
 	}
 
 	/**
@@ -128,12 +152,12 @@ public class Doorkeeper {
 	}
 
 	/**
-	 * Load the properties and initializing the chains
+	 * Load the properties and initialize the chains
 	 */
-	private void load() {
+	private void load(InputStream propertiesStream) {
 		try {
 			Properties props = new Properties();
-			props.load(ResourceFinder.getResource(DOORKEEPER_PROPERTIES));
+			props.load(propertiesStream);
 
 			authenticatorChain = buildChain(AUTHENTICATOR, props, authenticators);
 			authorizerChain = buildChain(AUTHORIZER, props, authorizers);
