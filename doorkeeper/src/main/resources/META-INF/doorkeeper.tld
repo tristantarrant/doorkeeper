@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<taglib xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	version="2.0"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-jsptaglibrary_2_0.xsd">
+	<description><![CDATA["To make it easier to access dynamic data;
+                    the Apache Struts framework includes a library of custom tags.
+                    The tags interact with the framework's validation and internationalization features;
+                    to ensure that input is correct and output is localized.
+                    The Struts Tags can be used with JSP FreeMarker or Velocity."]]></description>
+	<display-name>Doorkeeper Tags</display-name>
+	<tlib-version>2.2</tlib-version>
+	<short-name>dk</short-name>
+	<uri>/doorkeeper</uri>
+	
+	<tag>
+		<description><![CDATA[Defines a comma-separated list of groups a user must belong to in order to view the page]]></description>
+		<name>acl</name>
+		<tag-class>net.dataforte.doorkeeper.taglib.AclTag</tag-class>
+		<body-content>JSP</body-content>
+		<attribute>
+			<name>groups</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag>
+</taglib>

@@ -39,30 +39,36 @@ import org.slf4j.LoggerFactory;
 
 public class AuthenticatorFilter implements Filter {
 	private final static Logger log = LoggerFactory.getLogger(AuthenticatorFilter.class);
-	private static final String SESSION_USER = AuthenticatorUser.class.getName();	
+	private static final String SESSION_USER = AuthenticatorUser.class.getName();
 	private Doorkeeper doorkeeper;
 
 	@Override
 	public void init(FilterConfig filterConfig) throws ServletException {
-		if(log.isInfoEnabled()) {
+		if (log.isInfoEnabled()) {
 			log.info("Initializing AuthenticatorFilter...");
 		}
 		doorkeeper = Doorkeeper.getInstance(filterConfig.getServletContext());
+	}
+
+	public Doorkeeper getDoorkeeper() {
+		return doorkeeper;
+	}
+
+	public void setDoorkeeper(Doorkeeper doorkeeper) {
+		this.doorkeeper = doorkeeper;
 	}
 
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
 		final HttpServletRequest req = (HttpServletRequest) request;
 		final HttpServletResponse res = (HttpServletResponse) response;
-		
-		
+
 		/*** AUTHENTICATION PHASE ***/
 		// Get the session only if it exists already
 		HttpSession session = req.getSession(false);
-		
+
 		AuthenticatorUser user = null;
-		
-		
+
 		if (session != null) {
 			// Attempt to get user from session
 			user = (AuthenticatorUser) session.getAttribute(SESSION_USER);
@@ -71,19 +77,22 @@ public class AuthenticatorFilter implements Filter {
 		if (user == null) {
 			for (Authenticator auth : doorkeeper.getAuthenticatorChain("filter")) {
 				AuthenticatorToken token = auth.negotiate(req, res);
-				switch(token.getState()) {
-				
+				switch (token.getState()) {
+
 				case AUTHENTICATED:
-					// The authenticator has obtained a principal and has authenticated, so we just need to get the user's profile
+					// The authenticator has obtained a principal and has
+					// authenticated, so we just need to get the user's profile
 					session = req.getSession(true);
 					user = doorkeeper.getAccountManager().load(token);
 					session.setAttribute(SESSION_USER, user);
 					break;
 				case NEGOTIATING:
-					// if the authenticator requires more steps to complete, return immediately
+					// if the authenticator requires more steps to complete,
+					// return immediately
 					return;
 				case ACQUIRED:
-					// The authenticator has obtained principal and credentials but does not know how to validate them. We do it here
+					// The authenticator has obtained principal and credentials
+					// but does not know how to validate them. We do it here
 					String principalName = token.getPrincipalName();
 					if (principalName != null) {
 						try {
@@ -93,7 +102,7 @@ public class AuthenticatorFilter implements Filter {
 							auth.restart(req, res);
 							return;
 						}
-					
+
 						session = req.getSession(true);
 						if (log.isDebugEnabled()) {
 							log.debug("User = " + principalName);
@@ -109,20 +118,20 @@ public class AuthenticatorFilter implements Filter {
 				}
 			}
 		}
-		/*** AUTHORIZATION PHASE ***/		
-		for(Authorizer auth : doorkeeper.getAuthorizerChain("filter")) {
-			if(!auth.authorize(user, req.getServletPath())) {
+		/*** AUTHORIZATION PHASE ***/
+		for (Authorizer auth : doorkeeper.getAuthorizerChain("filter")) {
+			if (!auth.authorize(user, req.getServletPath())) {
 				res.sendError(HttpServletResponse.SC_FORBIDDEN);
 				return;
 			}
 		}
-		
+
 		chain.doFilter(new AuthenticatorRequestWrapper(req, user), response);
 	}
 
 	@Override
 	public void destroy() {
-		if(log.isInfoEnabled()) {
+		if (log.isInfoEnabled()) {
 			log.info("Shutting down AuthenticatorFilter...");
 		}
 	}

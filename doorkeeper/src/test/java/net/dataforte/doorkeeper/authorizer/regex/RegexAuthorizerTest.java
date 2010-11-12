@@ -1,6 +1,6 @@
 package net.dataforte.doorkeeper.authorizer.regex;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 
 import net.dataforte.doorkeeper.AuthenticatorUser;
@@ -14,7 +14,7 @@ public class RegexAuthorizerTest {
 	@Test
 	public void testRegexAuthorizer() throws Exception {
 		RegexAuthorizer regexAuth = new RegexAuthorizer();
-		Map<String, List<String>> authMap = (Map<String, List<String>>) Doorkeeper.json2map("{\"^/perm1/.*\":[\"group1\"],\"^/perm2/.*\":[\"group2\"]}");
+		Map<String, Collection<String>> authMap = (Map<String, Collection<String>>) Doorkeeper.json2map("{\"^/perm1/.*\":[\"group1\"],\"^/perm2/.*\":[\"group2\"]}");
 		regexAuth.setAclMap(authMap);
 		AuthenticatorUser user = new AuthenticatorUser("tom");
 		user.getGroups().add("group1");
