@@ -21,7 +21,6 @@ import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import net.dataforte.commons.web.URLUtils;
 import net.dataforte.doorkeeper.annotations.Property;
 import net.dataforte.doorkeeper.authenticator.Authenticator;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorState;
@@ -54,10 +53,14 @@ public class RestAuthenticator implements Authenticator {
 	@Override
 	public AuthenticatorToken negotiate(HttpServletRequest request, HttpServletResponse response) {
 		if (request.getRequestURI().endsWith(securityCheckPath)) {
-			String username = request.getParameter(usernameParameter);
-			String password = request.getParameter(passwordParameter);
-			if (username != null && password != null) {
-				return new PasswordAuthenticatorToken(username, password);
+			if("POST".equalsIgnoreCase(request.getMethod())) {
+				String username = request.getParameter(usernameParameter);
+				String password = request.getParameter(passwordParameter);
+				if (username != null && password != null) {
+					return new PasswordAuthenticatorToken(username, password);
+				}
+			} else {
+				// TODO: decide how to handle error
 			}
 		}
 		return new AuthenticatorToken(AuthenticatorState.NONE);

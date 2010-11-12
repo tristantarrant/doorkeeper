@@ -54,10 +54,18 @@ public class FormAuthenticator implements Authenticator {
 	@Override
 	public AuthenticatorToken negotiate(HttpServletRequest request, HttpServletResponse response) {
 		if (request.getRequestURI().endsWith(securityCheckPath)) {
-			String username = request.getParameter(usernameParameter);
-			String password = request.getParameter(passwordParameter);
-			if (username != null && password != null) {
-				return new PasswordAuthenticatorToken(username, password);
+			if("POST".equalsIgnoreCase(request.getMethod())) {
+				String username = request.getParameter(usernameParameter);
+				String password = request.getParameter(passwordParameter);
+				if (username != null && password != null) {
+					return new PasswordAuthenticatorToken(username, password);
+				}
+			} else {
+				try {
+					response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+				} catch (IOException e) {
+					// Ignore
+				}
 			}
 		}
 		return new AuthenticatorToken(AuthenticatorState.NONE);
@@ -113,9 +121,5 @@ public class FormAuthenticator implements Authenticator {
 
 	public void setLoginFailUrl(String loginFailUrl) {
 		this.loginFailUrl = loginFailUrl;
-	}
-
-	private String cleanURI(String uri) {
-		return uri.endsWith(securityCheckPath)?uri.substring(0, uri.length()-securityCheckPath.length()):uri;
 	}
 }
