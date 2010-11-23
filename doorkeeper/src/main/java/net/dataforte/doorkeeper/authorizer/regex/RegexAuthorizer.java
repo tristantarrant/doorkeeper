@@ -42,9 +42,6 @@ public class RegexAuthorizer implements Authorizer {
 	public boolean authorize(AuthenticatorUser user, String resourceName) {
 		for (Entry<Pattern, Set<String>> acl : aclMap.entrySet()) {
 			if (acl.getKey().matcher(resourceName).matches()) {
-				if(log.isDebugEnabled()) {
-					log.debug("Found pattern for {}", resourceName);
-				}
 				Set<String> set = acl.getValue();
 				// If the pattern allows all access, return immediately
 				if(set.contains(Authorizer.ALLOW_ALL)) {
@@ -57,6 +54,9 @@ public class RegexAuthorizer implements Authorizer {
 					userSet = user.getGroups();					
 				}
 				set.retainAll(userSet);
+				if(log.isDebugEnabled()) {
+					log.debug("User="+user+" accessing "+resourceName+" matches rule "+acl.getKey().pattern()+", group intersection="+set);
+				}
 				return set.size() > 0;
 			}
 		}
