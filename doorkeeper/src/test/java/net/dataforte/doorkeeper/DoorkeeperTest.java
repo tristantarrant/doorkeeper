@@ -13,7 +13,7 @@ public class DoorkeeperTest {
 	public void testDoorkeeper() {
 		Doorkeeper doorkeeper = new Doorkeeper();
 		
-		assertEquals(9, doorkeeper.getAuthenticators().size());
+		assertEquals(10, doorkeeper.getAuthenticators().size());
 		
 		assertEquals(3, doorkeeper.getAccountProviders().size());
 		
