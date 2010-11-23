@@ -15,8 +15,10 @@ import java.util.Properties;
 import javax.annotation.PostConstruct;
 import javax.servlet.ServletContext;
 
-import net.dataforte.commons.resources.ResourceFinder;
+import net.dataforte.commons.resources.ClassLoaderResourceResolver;
+import net.dataforte.commons.resources.IResourceResolver;
 import net.dataforte.commons.resources.ServiceFinder;
+import net.dataforte.commons.resources.ServletContextResourceResolver;
 import net.dataforte.doorkeeper.account.AccountManager;
 import net.dataforte.doorkeeper.account.provider.AccountProvider;
 import net.dataforte.doorkeeper.annotations.Property;
@@ -47,32 +49,47 @@ public class Doorkeeper {
 	private List<AccountProvider> accountProviderChain;
 	private AccountManager accountManager;
 
+	private Properties properties;
+	
+	IResourceResolver resourceResolver;
+
 	/**
-	 * Default constructor which looks for a doorkeeper.properties file in the classpath
+	 * Default constructor which looks for a doorkeeper.properties file in the
+	 * classpath
 	 */
 	public Doorkeeper() {
+		resourceResolver = new ClassLoaderResourceResolver();
 		init();
-		load(ResourceFinder.getResource(DOORKEEPER_PROPERTIES));
+		load(resourceResolver.getResource(DOORKEEPER_PROPERTIES));
 	}
-	
+
 	/**
-	 * Constructor which reads the configuration properties from the specified {@link InputStream}
-	 *  
+	 * Constructor which reads the configuration properties from the specified
+	 * {@link InputStream}
+	 * 
 	 * @param propertiesStream
 	 */
 	public Doorkeeper(InputStream propertiesStream) {
 		init();
 		load(propertiesStream);
 	}
-	
+
 	/**
-	 * Constructor which reads the configuration properties from the specified filename
+	 * Constructor which reads the configuration properties from the specified
+	 * filename
 	 * 
 	 * @param propertiesFileName
 	 */
 	public Doorkeeper(String propertiesFileName) {
+		resourceResolver = new ClassLoaderResourceResolver();
 		init();
-		load(ResourceFinder.getResource(propertiesFileName));
+		load(resourceResolver.getResource(propertiesFileName));
+	}
+
+	public Doorkeeper(ServletContext servletContext) {
+		resourceResolver = new ServletContextResourceResolver(servletContext);
+		init();
+		load(resourceResolver.getResource(DOORKEEPER_PROPERTIES));
 	}
 
 	/**
@@ -81,9 +98,10 @@ public class Doorkeeper {
 	 * @return
 	 */
 	public synchronized static Doorkeeper getInstance(ServletContext sc) {
+		
 		Doorkeeper instance = (Doorkeeper) sc.getAttribute(Doorkeeper.class.getName());
 		if (instance == null) {
-			instance = new Doorkeeper();
+			instance = new Doorkeeper(sc);
 			sc.setAttribute(Doorkeeper.class.getName(), instance);
 		}
 		return instance;
@@ -134,7 +152,7 @@ public class Doorkeeper {
 	public List<Authenticator> getAuthenticatorChain() {
 		return authenticatorChain;
 	}
-	
+
 	public List<Authorizer> getAuthorizerChain(String context) {
 		return authorizerChain;
 	}
@@ -156,12 +174,12 @@ public class Doorkeeper {
 	 */
 	private void load(InputStream propertiesStream) {
 		try {
-			Properties props = new Properties();
-			props.load(propertiesStream);
+			properties = new Properties();
+			properties.load(propertiesStream);
 
-			authenticatorChain = buildChain(AUTHENTICATOR, props, authenticators);
-			authorizerChain = buildChain(AUTHORIZER, props, authorizers);
-			accountProviderChain = buildChain(ACCOUNTPROVIDER, props, accountProviders);
+			authenticatorChain = buildChain(AUTHENTICATOR, properties, authenticators);
+			authorizerChain = buildChain(AUTHORIZER, properties, authorizers);
+			accountProviderChain = buildChain(ACCOUNTPROVIDER, properties, accountProviders);
 
 			accountManager = new AccountManager(accountProviderChain);
 		} catch (Exception e) {
@@ -177,7 +195,7 @@ public class Doorkeeper {
 		}
 		List<T> spiChain = new ArrayList<T>();
 		String chain = props.getProperty(chainName, "").trim();
-		if(chain.length()>0) {
+		if (chain.length() > 0) {
 			String[] chainLinks = chain.split(",[\\s]*");
 			for (String chainLink : chainLinks) {
 				String spiName;
@@ -200,9 +218,9 @@ public class Doorkeeper {
 					if (propertyName.startsWith(propertyPrefix)) {
 						String name = propertyName.substring(propertyPrefix.length());
 						Class<?> propertyType = PropertyUtils.getPropertyType(spi, name);
-						if(String.class==propertyType) {
+						if (String.class == propertyType) {
 							PropertyUtils.setProperty(spi, name, props.getProperty(propertyName));
-						} else if(Map.class==propertyType) {
+						} else if (Map.class == propertyType) {
 							PropertyUtils.setProperty(spi, name, json2map(props.getProperty(propertyName)));
 						} else {
 							log.warn("Unhandled property {} on class {}", name, spiType);
@@ -216,30 +234,51 @@ public class Doorkeeper {
 					}
 				}
 				spiChain.add(spi);
-	
+
 			}
 		}
 		return Collections.unmodifiableList(spiChain);
 	}
-	
+
 	public static Map<String, ?> json2map(String s) throws JSONException {
 		JSONObject json = new JSONObject(s);
 		Map<String, Object> map = new LinkedHashMap<String, Object>();
-		for(Iterator<String> it = json.keys(); it.hasNext(); ) {
+		for (Iterator<String> it = json.keys(); it.hasNext();) {
 			String key = it.next();
 			Object value = json.get(key);
-			if(value.getClass()==String.class) {
+			if (value.getClass() == String.class) {
 				map.put(key, value);
-			} else if(value.getClass()==JSONArray.class) {
+			} else if (value.getClass() == JSONArray.class) {
 				List<String> l = new ArrayList<String>();
-				JSONArray a = (JSONArray)value;
-				for(int i=0; i<a.length(); i++) {
+				JSONArray a = (JSONArray) value;
+				for (int i = 0; i < a.length(); i++) {
 					l.add(a.getString(i));
 				}
 				map.put(key, l);
 			}
 		}
 		return map;
+	}
+
+	public void applyConfiguration(String prefix, Object obj) {
+		String propertyPrefix = prefix + ".";
+		for (String propertyName : properties.stringPropertyNames()) {
+			if (propertyName.startsWith(propertyPrefix)) {
+				String name = propertyName.substring(propertyPrefix.length());
+				try {
+					Class<?> propertyType = PropertyUtils.getPropertyType(obj, name);
+					if (String.class == propertyType) {
+						PropertyUtils.setProperty(obj, name, properties.getProperty(propertyName));
+					} else if (Map.class == propertyType) {
+						PropertyUtils.setProperty(obj, name, json2map(properties.getProperty(propertyName)));
+					} else {
+						log.warn("Unhandled property {} of type {} on class {}", new String[] {name, propertyType.getName(), obj.getClass().getName()});
+					}
+				} catch (Exception e) {
+					log.warn("Unhandled property {} on class {}", name, obj.getClass().getName());
+				}
+			}
+		}
 	}
 
 	/**

@@ -1,0 +1,57 @@
+Integrating Doorkeeper in an application
+
+	In order to use Doorkeeper you need to add the doorkeeper jar to your webapplication. If you use Maven:
+	
++-----------------------------------------
+	<dependency>
+		<groupId>net.dataforte</groupId>
+		<artifactId>doorkeeper</artifactId>
+		<version>${project.version}</version>
+	</dependency>
++-----------------------------------------
+
+	Next you need to add the context listener and the filter to your web.xml
+	
++-----------------------------------------
+	<listener>
+		<listener-class>net.dataforte.doorkeeper.filter.ContextListener</listener-class>
+	</listener>
+	
+	<filter>
+		<filter-name>doorkeeper</filter-name>
+		<filter-class>net.dataforte.doorkeeper.filter.AuthenticatorFilter</filter-class>
+	</filter>
+	
+	<filter-mapping>
+		<filter-name>doorkeeper</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
++-----------------------------------------
+
+	You now need a doorkeeper.properties which describes how you want to authenticate and authorize your users.
+	You are not just limited to a single method per application, but you can define chains of authenticators
+	and authorizers. Each element in the chain will be queried to handle a specific authentication or authorization
+	request.
+	The first thing you need to defines is an authenticator. There are two kinds of authenticators: ones which are only
+	capable of retrieving credentials from the users and ones which are also able to validate these credentials against
+	some kind of subsystems. Examples of the former are: form, basic, digest; examples of the latter are ntlm and kerberos.
+	
++-----------------------------------------
+	# The Authenticator Chain
+	authenticator.chain=form
+	
+	# Form authenticator configuration
+	authenticator.form.loginSuccessUrl=${baseUrl}/auth/index.jsp
+	authenticator.form.loginFailUrl=${baseUrl}/index.jsp
+	
+	accountprovider.chain=properties
+	
+	accountprovider.properties.userProperties=users.properties
+	accountprovider.properties.groupProperties=groups.properties
+	
+	# The Authorization chain
+	authorizer.chain=regex
+	
+	# The regex authorizer configuration
+	authorizer.regex.aclMap={ "^/index.jsp":["$ALLOW_ALL"], "^/[css|js|img]/.*":["$ALLOW_ALL"], "^/auth/.*":["$AUTHENTICATED"],"^/admin/.*":["administrator"] }
++-----------------------------------------

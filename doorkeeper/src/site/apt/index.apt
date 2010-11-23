@@ -7,6 +7,6 @@ Doorkeeper
 
     * Multiple authenticators (Basic, Digest, Form, NTLM, Cookie, SPNEGO/Kerberos, Container)
     
-    * Multiple account providers (LDAP, JDBC, Properties files)
+    * Multiple account providers (LDAP, JDBC, Properties files)    
         
     []

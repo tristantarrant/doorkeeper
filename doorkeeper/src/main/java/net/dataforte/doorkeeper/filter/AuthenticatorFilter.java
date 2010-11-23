@@ -16,6 +16,7 @@
 package net.dataforte.doorkeeper.filter;
 
 import java.io.IOException;
+import java.util.regex.Pattern;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -41,13 +42,14 @@ public class AuthenticatorFilter implements Filter {
 	private final static Logger log = LoggerFactory.getLogger(AuthenticatorFilter.class);
 	private static final String SESSION_USER = AuthenticatorUser.class.getName();
 	private Doorkeeper doorkeeper;
+	private Pattern skipRegex = Pattern.compile(".+\\.(gif|png|jpg|jpeg|swf|js|css)$");
 
 	@Override
 	public void init(FilterConfig filterConfig) throws ServletException {
 		if (log.isInfoEnabled()) {
 			log.info("Initializing AuthenticatorFilter...");
 		}
-		doorkeeper = Doorkeeper.getInstance(filterConfig.getServletContext());
+		setDoorkeeper(Doorkeeper.getInstance(filterConfig.getServletContext()));
 	}
 
 	public Doorkeeper getDoorkeeper() {
@@ -56,12 +58,27 @@ public class AuthenticatorFilter implements Filter {
 
 	public void setDoorkeeper(Doorkeeper doorkeeper) {
 		this.doorkeeper = doorkeeper;
+		this.doorkeeper.applyConfiguration("filter", this);
+	}
+	
+	public String getSkipRegex() {
+		return skipRegex.pattern();
+	}
+
+	public void setSkipRegex(String skipRegex) {
+		this.skipRegex = Pattern.compile(skipRegex);
 	}
 
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
 		final HttpServletRequest req = (HttpServletRequest) request;
 		final HttpServletResponse res = (HttpServletResponse) response;
+		
+		// Do not try to authenticate/authorize resources matching the skipFilterRegex pattern
+		if(skipRegex.matcher(req.getRequestURI()).matches()) {
+			chain.doFilter(request, response);
+			return;
+		}
 
 		/*** AUTHENTICATION PHASE ***/
 		// Get the session only if it exists already
@@ -115,9 +132,13 @@ public class AuthenticatorFilter implements Filter {
 						auth.restart(req, res);
 						return;
 					}
+				case REJECTED:
+					return;
 				}
+				
 			}
 		}
+		
 		/*** AUTHORIZATION PHASE ***/
 		for (Authorizer auth : doorkeeper.getAuthorizerChain("filter")) {
 			if (!auth.authorize(user, req.getServletPath())) {

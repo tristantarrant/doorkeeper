@@ -34,7 +34,7 @@ public class RegexAuthorizer implements Authorizer {
 		
 		this.aclMap.clear();
 		for(Entry<String, Collection<String>> acl : aclMap.entrySet()) {
-			this.aclMap.put(Pattern.compile(acl.getKey()), new HashSet<String>( acl.getValue()));
+			this.aclMap.put(Pattern.compile(acl.getKey()), new HashSet<String>(acl.getValue()));
 		}
 	}
 

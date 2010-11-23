@@ -66,6 +66,7 @@ public class FormAuthenticator implements Authenticator {
 				} catch (IOException e) {
 					// Ignore
 				}
+				return new AuthenticatorToken(AuthenticatorState.REJECTED);
 			}
 		}
 		return new AuthenticatorToken(AuthenticatorState.NONE);

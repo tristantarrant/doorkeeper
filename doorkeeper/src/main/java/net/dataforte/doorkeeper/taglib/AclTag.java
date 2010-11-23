@@ -32,7 +32,7 @@ public class AclTag extends TagSupport {
 	}
 
 	@Override
-	public int doEndTag() throws JspException {
+	public int doStartTag() throws JspException {
 		HttpServletRequest req = (HttpServletRequest) pageContext.getRequest();
 
 		Set<String> set = new HashSet<String>(Arrays.asList(groups.split(",")));
@@ -44,11 +44,8 @@ public class AclTag extends TagSupport {
 			userSet = user.getGroups();
 		}
 		set.retainAll(userSet);
-		if (set.size() > 0) {
-			return EVAL_PAGE;
-		} else {
-			return SKIP_PAGE;
-		}
+		
+		return set.size()>0?EVAL_BODY_INCLUDE:SKIP_BODY;		
 	}
 
 }

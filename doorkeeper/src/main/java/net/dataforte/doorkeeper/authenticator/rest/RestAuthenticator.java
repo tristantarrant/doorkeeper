@@ -60,7 +60,12 @@ public class RestAuthenticator implements Authenticator {
 					return new PasswordAuthenticatorToken(username, password);
 				}
 			} else {
-				// TODO: decide how to handle error
+				try {
+					response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+				} catch (IOException e) {
+					// Ignore
+				}
+				return new AuthenticatorToken(AuthenticatorState.REJECTED);
 			}
 		}
 		return new AuthenticatorToken(AuthenticatorState.NONE);
