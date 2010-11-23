@@ -27,6 +27,7 @@ import java.util.Hashtable;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -81,8 +82,8 @@ public class LdapAccountProvider implements AccountProvider {
 	private String memberAttribute = "member";
 	List<String> staticGroups;
 	private String[] userReturnedAttributes;
-	private Map<Pattern, String> ouMap;
-	private Map<Pattern, String> groupMap;
+	private Map<Pattern, String> ouMap = new LinkedHashMap<Pattern, String>();
+	private Map<Pattern, String> groupMap = new LinkedHashMap<Pattern, String>();
 	private Map<String, String> attributeMap = new LinkedHashMap<String, String>();
 	private DateFormat serverDateFormat;
 
@@ -216,6 +217,30 @@ public class LdapAccountProvider implements AccountProvider {
 	public void setAttributeMap(Map<String, String> attributeMap) {
 		this.attributeMap = attributeMap;
 	}
+	
+	
+
+	public Map<Pattern, String> getOuMap() {
+		return ouMap;
+	}
+
+	public void setOuMap(Map<String, String> ouMap) {
+		this.ouMap.clear();
+		for(Entry<String, String> entry : ouMap.entrySet()) {
+			this.ouMap.put(Pattern.compile(entry.getKey()), entry.getValue());
+		}
+	}
+
+	public Map<Pattern, String> getGroupMap() {
+		return groupMap;
+	}
+
+	public void setGroupMap(Map<String, String> groupMap) {
+		this.groupMap.clear();
+		for(Entry<String, String> entry : groupMap.entrySet()) {
+			this.groupMap.put(Pattern.compile(entry.getKey()), entry.getValue());
+		}
+	}
 
 	@Override
 	public AuthenticatorUser authenticate(AuthenticatorToken token) throws AuthenticatorException {
@@ -267,7 +292,9 @@ public class LdapAccountProvider implements AccountProvider {
 				// Cache the data
 				cache.put(passwordToken.getPrincipalName(), entry);
 
-				return new AuthenticatorUser(passwordToken.getPrincipalName());
+				AuthenticatorUser authenticatorUser = new AuthenticatorUser(passwordToken.getPrincipalName());
+				authenticatorUser.getGroups().addAll(entry.addGroups);
+				return authenticatorUser;
 			}
 		} catch (Exception e) {
 			log.error("Error during LDAP authentication", e);

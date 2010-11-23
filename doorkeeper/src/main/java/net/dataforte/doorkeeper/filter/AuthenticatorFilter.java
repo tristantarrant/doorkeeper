@@ -100,8 +100,14 @@ public class AuthenticatorFilter implements Filter {
 					// The authenticator has obtained a principal and has
 					// authenticated, so we just need to get the user's profile
 					session = req.getSession(true);
-					user = doorkeeper.getAccountManager().load(token);
-					session.setAttribute(SESSION_USER, user);
+					try {
+						user = doorkeeper.getAccountManager().load(token);
+						session.setAttribute(SESSION_USER, user);
+					} catch (AuthenticatorException e) {
+						// Authentication failed, restart it
+						auth.restart(req, res);
+						return;
+					}
 					break;
 				case NEGOTIATING:
 					// if the authenticator requires more steps to complete,
@@ -133,6 +139,7 @@ public class AuthenticatorFilter implements Filter {
 						return;
 					}
 				case REJECTED:
+					auth.restart(req, res);
 					return;
 				}
 				
