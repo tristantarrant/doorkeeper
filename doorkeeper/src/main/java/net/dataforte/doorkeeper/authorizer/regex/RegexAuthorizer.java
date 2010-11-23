@@ -53,6 +53,7 @@ public class RegexAuthorizer implements Authorizer {
 				} else {
 					userSet = user.getGroups();					
 				}
+				set = new HashSet<String>(set);
 				set.retainAll(userSet);
 				if(log.isDebugEnabled()) {
 					log.debug("User="+user+" accessing "+resourceName+" matches rule "+acl.getKey().pattern()+", group intersection="+set);
