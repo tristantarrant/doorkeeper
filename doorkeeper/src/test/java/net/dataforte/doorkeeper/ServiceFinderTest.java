@@ -15,7 +15,7 @@ public class ServiceFinderTest {
 	@Test
 	public void testFindServices() {
 		List<Class<? extends Authenticator>> authenticators = ServiceFinder.findServices(Authenticator.class);
-		assertEquals(9, authenticators.size());
+		assertEquals(10, authenticators.size());
 		
 		List<Class<? extends AccountProvider>> providers = ServiceFinder.findServices(AccountProvider.class);
 		assertEquals(3, providers.size());
