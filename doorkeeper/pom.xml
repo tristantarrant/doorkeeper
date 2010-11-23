@@ -27,9 +27,9 @@
 	</description>
 
 	<scm>
-		<connection>scm:svn:http://dataforte.dyndns.org/svn/dataforte/doorkeeper/trunk/</connection>
-		<developerConnection>scm:svn:http://dataforte.dyndns.org/svn/dataforte/doorkeeper/trunk/</developerConnection>
-		<url>http://dataforte.dyndns.org/websvn/listing.php?repname=dataforte&amp;path=/doorkeeper/trunk/</url>
+		<connection>scm:git:http://github.com/tristantarrant/doorkeeper.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/tristantarrant/doorkeeper.git</developerConnection>
+		<url>http://github.com/tristantarrant/doorkeeper</url>
 	</scm>
 	
 	<distributionManagement>
