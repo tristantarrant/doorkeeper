@@ -13,13 +13,26 @@
 	<uri>/doorkeeper</uri>
 	
 	<tag>
-		<description><![CDATA[Defines a comma-separated list of groups a user must belong to in order to view the page]]></description>
+		<description><![CDATA[Defines a comma-separated list of groups a user must belong to in order to view the content enclosed within the tag]]></description>
 		<name>acl</name>
 		<tag-class>net.dataforte.doorkeeper.taglib.AclTag</tag-class>
 		<body-content>JSP</body-content>		
 		<attribute>
-			<name>groups</name>
+			<description>A list of comma-separated group names</description>
+			<name>groups</name>			
 			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<description>The boolean operator to use when matching the user's groups. May be OR (at least one group, the default), AND (all groups), XOR (one group only).</description>
+			<name>operator</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<description>A URL to redirect to in case the user does not satisfy the requirements</description>
+			<name>redirect</name>
+			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>
 	</tag>

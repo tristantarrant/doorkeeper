@@ -9,9 +9,11 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import net.dataforte.commons.CollectionUtils;
 import net.dataforte.doorkeeper.AuthenticatorUser;
 import net.dataforte.doorkeeper.annotations.Property;
 import net.dataforte.doorkeeper.authorizer.Authorizer;
+import net.dataforte.doorkeeper.authorizer.BooleanAuthorizerOperator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +23,7 @@ public class RegexAuthorizer implements Authorizer {
 	final Logger log = LoggerFactory.getLogger(RegexAuthorizer.class);
 
 	Map<Pattern, Set<String>> aclMap;
+	BooleanAuthorizerOperator operator = BooleanAuthorizerOperator.OR;
 
 	public RegexAuthorizer() {
 		aclMap = new LinkedHashMap<Pattern, Set<String>>();
@@ -31,11 +34,19 @@ public class RegexAuthorizer implements Authorizer {
 	}
 
 	public void setAclMap(Map<String, Collection<String>> aclMap) {
-		
+
 		this.aclMap.clear();
-		for(Entry<String, Collection<String>> acl : aclMap.entrySet()) {
+		for (Entry<String, Collection<String>> acl : aclMap.entrySet()) {
 			this.aclMap.put(Pattern.compile(acl.getKey()), new HashSet<String>(acl.getValue()));
 		}
+	}
+
+	public BooleanAuthorizerOperator getOperator() {
+		return operator;
+	}
+
+	public void setOperator(String operator) {
+		this.operator = BooleanAuthorizerOperator.valueOf(operator);
 	}
 
 	@Override
@@ -44,24 +55,33 @@ public class RegexAuthorizer implements Authorizer {
 			if (acl.getKey().matcher(resourceName).matches()) {
 				Set<String> set = acl.getValue();
 				// If the pattern allows all access, return immediately
-				if(set.contains(Authorizer.ALLOW_ALL)) {
+				if (set.contains(Authorizer.ALLOW_ALL)) {
 					return true;
 				}
 				Set<String> userSet = null;
-				if(user==null) {
+				if (user == null) {
 					userSet = Collections.emptySet();
 				} else {
-					userSet = user.getGroups();					
+					userSet = user.getGroups();
 				}
-				set = new HashSet<String>(set);
-				set.retainAll(userSet);
-				if(log.isDebugEnabled()) {
-					log.debug("User="+user+" accessing "+resourceName+" matches rule "+acl.getKey().pattern()+", group intersection="+set);
+				int coincidences = CollectionUtils.collectionCompare(set, userSet);
+				if (log.isDebugEnabled()) {
+					log.debug("User=" + user + " accessing " + resourceName + " matches rule " + acl.getKey().pattern() + ", coincidences = " + coincidences);
 				}
-				return set.size() > 0;
+				switch (operator) {
+				case OR:
+					return coincidences > 0;
+				case AND:
+					return coincidences == acl.getValue().size();
+				case XOR:
+					return coincidences == 1;
+				}
+
 			}
 		}
 		return true;
 	}
+
+	
 
 }
