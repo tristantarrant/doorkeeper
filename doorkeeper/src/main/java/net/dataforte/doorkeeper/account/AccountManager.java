@@ -47,16 +47,14 @@ public class AccountManager {
 
 	public AuthenticatorUser load(AuthenticatorToken token) throws AuthenticatorException {
 		for(AccountProvider accountProvider : accountProviders) {
-			try {
-				AuthenticatorUser user = accountProvider.load(token);
-				if(user!=null) {
-					return user;
-				}
-			} catch (AuthenticatorException e) {
-				// Ignore exceptions here
-			}
+			
+			AuthenticatorUser user = accountProvider.load(token);
+			if(user!=null) {
+				return user;
+			}			
 		}
-		return null;
+		// None of the account providers was able to load the user
+		throw new AuthenticatorException("No account providers for %s", token);
 	}
 	
 	public List<AuthenticatorUser> getUsersInGroup(String groupName) {

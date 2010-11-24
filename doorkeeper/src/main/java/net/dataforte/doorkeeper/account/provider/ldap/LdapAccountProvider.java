@@ -260,14 +260,14 @@ public class LdapAccountProvider implements AccountProvider {
 
 			if (entry == null) {
 				if (log.isDebugEnabled()) {
-					log.debug("User " + passwordToken.getPrincipalName() + " not authenticated");
+					log.debug("User " + passwordToken.getPrincipalName() + " does not exist on this provider");
 				}
-				throw new AuthenticatorException("");
+				return null;
 			} else if (entry == NULL_USER) {
 				if (log.isDebugEnabled()) {
-					log.debug("User " + passwordToken.getPrincipalName() + " not authenticated");
+					log.debug("User " + passwordToken.getPrincipalName() + " does not exist on this provider");
 				}
-				throw new AuthenticatorException("");
+				return null;
 			} else {
 				Hashtable<String, String> authEnv = new Hashtable<String, String>(env);
 

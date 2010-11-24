@@ -15,6 +15,7 @@
  */
 package net.dataforte.doorkeeper;
 
+
 public class AuthenticatorException extends Exception {
 	
 	public AuthenticatorException(String message) {
@@ -28,6 +29,10 @@ public class AuthenticatorException extends Exception {
 	public AuthenticatorException(String message, Throwable cause) {
 		super(message, cause);
 		
+	}
+
+	public AuthenticatorException(String format, Object... args) {
+		super(String.format(format, args));
 	}
 
 }

@@ -101,7 +101,7 @@ public class AuthenticatorFilter implements Filter {
 					// authenticated, so we just need to get the user's profile
 					session = req.getSession(true);
 					try {
-						user = doorkeeper.getAccountManager().load(token);
+						user = doorkeeper.getAccountManager().load(token);						
 						session.setAttribute(SESSION_USER, user);
 					} catch (AuthenticatorException e) {
 						// Authentication failed, restart it
