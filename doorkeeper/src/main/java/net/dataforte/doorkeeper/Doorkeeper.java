@@ -19,6 +19,7 @@ import net.dataforte.commons.resources.ClassLoaderResourceResolver;
 import net.dataforte.commons.resources.IResourceResolver;
 import net.dataforte.commons.resources.ServiceFinder;
 import net.dataforte.commons.resources.ServletContextResourceResolver;
+import net.dataforte.commons.resources.WebAppResourceResolver;
 import net.dataforte.doorkeeper.account.AccountManager;
 import net.dataforte.doorkeeper.account.provider.AccountProvider;
 import net.dataforte.doorkeeper.annotations.Property;
@@ -87,7 +88,7 @@ public class Doorkeeper {
 	}
 
 	public Doorkeeper(ServletContext servletContext) {
-		resourceResolver = new ServletContextResourceResolver(servletContext);
+		resourceResolver = new WebAppResourceResolver(servletContext);
 		init();
 		load(resourceResolver.getResource(DOORKEEPER_PROPERTIES));
 	}

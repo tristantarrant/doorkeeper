@@ -566,19 +566,28 @@ public class LdapAccountProvider implements AccountProvider {
 	}
 
 	private void remapGroups(LdapEntry item, Set<String> groups) {
-		// Remap them using the groupMap
-		for (String group : groups) {
-			for (Map.Entry<Pattern, String> groupEntry : groupMap.entrySet()) {
-				if (groupEntry.getKey().matcher(group).matches()) {
-					item.addGroups.add(groupEntry.getValue());
-				} else {
-					item.delGroups.add(groupEntry.getValue());
+		
+		// If a group map has not been specified, simply extract the group's name from its DN
+		if(groupMap.isEmpty()) {
+			for (String group : groups) {
+				String rdns[] = group.split("\\s*,\\s*");
+				item.addGroups.add(rdns[0].substring(rdns[0].indexOf('=')+1));
+			}
+		} else {
+			// Remap them using the groupMap
+			for (String group : groups) {
+				for (Map.Entry<Pattern, String> groupEntry : groupMap.entrySet()) {
+					if (groupEntry.getKey().matcher(group).matches()) {
+						item.addGroups.add(groupEntry.getValue());
+					} else {
+						item.delGroups.add(groupEntry.getValue());
+					}
 				}
 			}
+			// Do not delete the user from groups which are
+			// also being added
+			item.delGroups.removeAll(item.addGroups);
 		}
-		// Do not delete the user from groups which are
-		// also being added
-		item.delGroups.removeAll(item.addGroups);
 	}
 
 	private static void closeEnumerations(NamingEnumeration<?>... en) {
