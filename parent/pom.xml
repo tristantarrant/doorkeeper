@@ -25,12 +25,6 @@
 			<organizationUrl>http://www.dataforte.net</organizationUrl>
 		</contributor>
 	</contributors>
-	
-	<scm>
-		<connection>scm:git:http://github.com/tristantarrant/doorkeeper.git</connection>
-		<developerConnection>scm:git:ssh://git@github.com/tristantarrant/doorkeeper.git</developerConnection>
-		<url>http://github.com/tristantarrant/doorkeeper</url>
-	</scm>	
 
 	<distributionManagement>
 		<site>
