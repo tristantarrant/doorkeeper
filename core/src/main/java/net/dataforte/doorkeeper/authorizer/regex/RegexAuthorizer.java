@@ -20,6 +20,29 @@ import net.dataforte.doorkeeper.authorizer.BooleanAuthorizerOperator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * RegexAuthorizer is an authorizer which matches URIs against a set of regular expressions and,
+ * if a match is found, the user's group membership is matched against a set of required acls.
+ * The match can be evaluated using boolean operators: 
+ * <ul>
+ * <li>OR means that the user must belong to at least one of the specified groups</li>
+ * <li>AND means that the user must belong to all of the specified groups</li>
+ * <li>XOR means that the user must belong to only one of the specified groups</li>
+ * </ul>
+ * 
+ * <p>The special group names $AUTHENTICATED, $ALLOW_ALL and $DENY_ALL can be used</p>
+ * 
+ * <p>The acl is specified using JSON notation as follows:</p>
+ * 
+ * <pre>authorizer.regex.aclMap={ "^/index.jsp":["$ALLOW_ALL"], "^/[css|js|img]/.*":["$ALLOW_ALL"], "^/auth/.*":["$AUTHENTICATED"],"^/admin/.*":["administrator"] }
+ * authorizer.regex.redirectUrl=${baseUrl}/index.jsp</pre>
+ * 
+ * <p>If the acl is not satisfied the authorizer will redirect to the optional redirectURL,
+ * otherwise an HTTP unauthorized error (403) is sent</p>  
+ * 
+ * @author Tristan Tarrant
+ *
+ */
 @Property(name = "name", value = "regex")
 public class RegexAuthorizer implements Authorizer {
 	final Logger log = LoggerFactory.getLogger(RegexAuthorizer.class);
@@ -51,7 +74,7 @@ public class RegexAuthorizer implements Authorizer {
 	public void setOperator(String operator) {
 		this.operator = BooleanAuthorizerOperator.valueOf(operator);
 	}
-
+	
 	public String getRedirectUrl() {
 		return redirectUrl;
 	}

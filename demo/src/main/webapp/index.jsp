@@ -3,10 +3,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
 		<title>Doorkeeper: Login</title>
-		<link rel="stylesheet" type="text/css" media="screen" href="css/style.css" />
+		<link rel="stylesheet" type="text/css" media="screen" href="<%=request.getContextPath() %>/css/style.css" />
 	</head>
 	<body>
-		<form action="auth/j_doorkeeper_security_check">
+		
+		<form action="auth/j_doorkeeper_security_check" method="post">
+			<img src="img/doorkeeper.png" />
 			<table>
 				<tr>
 					<td><label for="j_username">Username</label></td>
@@ -21,6 +23,9 @@
 				</tr>
 			</table>
 		</form>
+		<div class="help center">
+			You can login with either admin/admin or guest/guest
+		</div>
 	</body>
 </html>
 

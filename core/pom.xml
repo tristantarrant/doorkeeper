@@ -1,26 +1,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<parent>
-		<groupId>net.dataforte</groupId>
+		<groupId>net.dataforte.doorkeeper</groupId>
 		<artifactId>doorkeeper-parent</artifactId>
 		<version>0.3.5-SNAPSHOT</version>
-		<relativePath>../pom.xml</relativePath>
+		<relativePath>../parent/pom.xml</relativePath>
 	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
-	<artifactId>doorkeeper</artifactId>
+	<artifactId>doorkeeper-core</artifactId>
 	<packaging>jar</packaging>
 	<name>Doorkeeper</name>
 	<url>http://www.dataforte.net/software/${project.artifactId}</url>
-
-	<contributors>
-		<contributor>
-			<name>Tristan Tarrant</name>
-			<email>tristan.tarrant@dataforte.net</email>
-			<organization>Dataforte</organization>
-			<organizationUrl>http://www.dataforte.net</organizationUrl>
-		</contributor>
-	</contributors>
 
 	<description>
 		Doorkeeper: simple authentication library
@@ -117,3 +108,4 @@
 		</dependency>
 	</dependencies>
 </project>
+
