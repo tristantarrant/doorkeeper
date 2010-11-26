@@ -11,7 +11,7 @@
 	<artifactId>doorkeeper-parent</artifactId>
 	<version>0.3.5-SNAPSHOT</version>
 	<packaging>pom</packaging>
-	<name>Doorkeeper Parent</name>
+	<name>Doorkeeper Parent Artifact</name>
 	
 	<properties>
 		<slf4j.version>1.6.1</slf4j.version>

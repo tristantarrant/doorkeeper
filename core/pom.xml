@@ -10,7 +10,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>doorkeeper-core</artifactId>
 	<packaging>jar</packaging>
-	<name>Doorkeeper</name>
+	<name>Doorkeeper Core Library</name>
 	<url>http://www.dataforte.net/software/${project.artifactId}</url>
 
 	<description>
