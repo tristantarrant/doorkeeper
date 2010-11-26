@@ -28,9 +28,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import net.dataforte.commons.web.URLUtils;
 import net.dataforte.doorkeeper.AuthenticatorException;
 import net.dataforte.doorkeeper.AuthenticatorUser;
 import net.dataforte.doorkeeper.Doorkeeper;
+import net.dataforte.doorkeeper.RedirectAuthenticatorException;
 import net.dataforte.doorkeeper.authenticator.Authenticator;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorToken;
 import net.dataforte.doorkeeper.authorizer.Authorizer;
@@ -148,7 +150,15 @@ public class AuthenticatorFilter implements Filter {
 		
 		/*** AUTHORIZATION PHASE ***/
 		for (Authorizer auth : doorkeeper.getAuthorizerChain("filter")) {
-			if (!auth.authorize(user, req.getServletPath())) {
+			try {
+				if (!auth.authorize(user, req.getServletPath())) {
+					res.sendError(HttpServletResponse.SC_FORBIDDEN);
+					return;
+				}
+			} catch (RedirectAuthenticatorException e) {
+				res.sendRedirect(URLUtils.urlRewrite(req, e.getRedirectUrl()));
+				return;
+			} catch (AuthenticatorException e) {
 				res.sendError(HttpServletResponse.SC_FORBIDDEN);
 				return;
 			}

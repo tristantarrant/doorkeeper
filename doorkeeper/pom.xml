@@ -1,14 +1,14 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<parent>
 		<groupId>net.dataforte</groupId>
-		<artifactId>dataforte-parent</artifactId>	
-		<version>5</version>
+		<artifactId>doorkeeper-parent</artifactId>
+		<version>0.3.5-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
 	</parent>
-	
+
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>net.dataforte</groupId>
 	<artifactId>doorkeeper</artifactId>
-	<version>0.3.5-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>Doorkeeper</name>
 	<url>http://www.dataforte.net/software/${project.artifactId}</url>
@@ -26,12 +26,6 @@
 		Doorkeeper: simple authentication library
 	</description>
 
-	<scm>
-		<connection>scm:git:http://github.com/tristantarrant/doorkeeper.git</connection>
-		<developerConnection>scm:git:ssh://git@github.com/tristantarrant/doorkeeper.git</developerConnection>
-		<url>http://github.com/tristantarrant/doorkeeper</url>
-	</scm>
-	
 	<distributionManagement>
 		<site>
 			<id>ftp.dataforte.net</id>
@@ -44,13 +38,18 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>1.6.1</version>
+			<version>${slf4j.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.6.1</version>
+			<version>${slf4j.version}</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+			<version>${slf4j.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>log4j</groupId>
@@ -102,18 +101,14 @@
 		<dependency>
 			<groupId>net.dataforte</groupId>
 			<artifactId>dataforte-commons</artifactId>
-			<version>0.0.3-SNAPSHOT</version>
+			<version>0.0.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.json</groupId>
 			<artifactId>json</artifactId>
 			<version>20090211</version>
 		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>jcl-over-slf4j</artifactId>
-			<version>1.6.1</version>
-		</dependency>
+
 		<dependency>
 			<groupId>javax.servlet.jsp</groupId>
 			<artifactId>jsp-api</artifactId>

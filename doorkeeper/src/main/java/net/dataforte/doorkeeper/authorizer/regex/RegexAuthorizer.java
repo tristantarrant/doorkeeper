@@ -10,7 +10,9 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import net.dataforte.commons.CollectionUtils;
+import net.dataforte.doorkeeper.AuthenticatorException;
 import net.dataforte.doorkeeper.AuthenticatorUser;
+import net.dataforte.doorkeeper.RedirectAuthenticatorException;
 import net.dataforte.doorkeeper.annotations.Property;
 import net.dataforte.doorkeeper.authorizer.Authorizer;
 import net.dataforte.doorkeeper.authorizer.BooleanAuthorizerOperator;
@@ -24,6 +26,7 @@ public class RegexAuthorizer implements Authorizer {
 
 	Map<Pattern, Set<String>> aclMap;
 	BooleanAuthorizerOperator operator = BooleanAuthorizerOperator.OR;
+	String redirectUrl;
 
 	public RegexAuthorizer() {
 		aclMap = new LinkedHashMap<Pattern, Set<String>>();
@@ -49,8 +52,26 @@ public class RegexAuthorizer implements Authorizer {
 		this.operator = BooleanAuthorizerOperator.valueOf(operator);
 	}
 
+	public String getRedirectUrl() {
+		return redirectUrl;
+	}
+
+	public void setRedirectUrl(String redirectUrl) {
+		this.redirectUrl = redirectUrl;
+	}
+	
+	private boolean returnOrRedirect(boolean b) throws RedirectAuthenticatorException {
+		if(b)
+			return true;
+		else if(redirectUrl!=null) {
+			throw new RedirectAuthenticatorException(redirectUrl);
+		} else {
+			return false;
+		}
+	}
+
 	@Override
-	public boolean authorize(AuthenticatorUser user, String resourceName) {
+	public boolean authorize(AuthenticatorUser user, String resourceName) throws AuthenticatorException {
 		for (Entry<Pattern, Set<String>> acl : aclMap.entrySet()) {
 			if (acl.getKey().matcher(resourceName).matches()) {
 				Set<String> set = acl.getValue();
@@ -70,18 +91,16 @@ public class RegexAuthorizer implements Authorizer {
 				}
 				switch (operator) {
 				case OR:
-					return coincidences > 0;
+					return returnOrRedirect(coincidences > 0);
 				case AND:
-					return coincidences == acl.getValue().size();
+					return returnOrRedirect(coincidences == acl.getValue().size());
 				case XOR:
-					return coincidences == 1;
+					return returnOrRedirect(coincidences == 1);
 				}
 
 			}
 		}
 		return true;
 	}
-
-	
 
 }
