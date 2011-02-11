@@ -32,18 +32,19 @@ Integrating Doorkeeper in an application
 	You are not just limited to a single method per application, but you can define chains of authenticators
 	and authorizers. Each element in the chain will be queried to handle a specific authentication or authorization
 	request.
-	The first thing you need to defines is an authenticator. There are two kinds of authenticators: ones which are only
+	The first thing you need to define is an authenticator. There are two kinds of authenticators: ones which are only
 	capable of retrieving credentials from the users and ones which are also able to validate these credentials against
 	some kind of subsystems. Examples of the former are: form, basic, digest; examples of the latter are ntlm and kerberos.
 	
 +-----------------------------------------
-	# The Authenticator Chain
+	# The Authenticator chain
 	authenticator.chain=form
 	
 	# Form authenticator configuration
 	authenticator.form.loginSuccessUrl=${baseUrl}/auth/index.jsp
 	authenticator.form.loginFailUrl=${baseUrl}/index.jsp
 	
+	# The Account Provider chain
 	accountprovider.chain=properties
 	
 	accountprovider.properties.userProperties=users.properties
@@ -55,3 +56,5 @@ Integrating Doorkeeper in an application
 	# The regex authorizer configuration
 	authorizer.regex.aclMap={ "^/index.jsp":["$ALLOW_ALL"], "^/[css|js|img]/.*":["$ALLOW_ALL"], "^/auth/.*":["$AUTHENTICATED"],"^/admin/.*":["administrator"] }
 +-----------------------------------------
+
+	

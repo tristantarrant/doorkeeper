@@ -18,8 +18,8 @@ import javax.servlet.ServletContext;
 import net.dataforte.commons.resources.ClassLoaderResourceResolver;
 import net.dataforte.commons.resources.IResourceResolver;
 import net.dataforte.commons.resources.ServiceFinder;
-import net.dataforte.commons.resources.ServletContextResourceResolver;
 import net.dataforte.commons.resources.WebAppResourceResolver;
+import net.dataforte.commons.slf4j.LoggerFactory;
 import net.dataforte.doorkeeper.account.AccountManager;
 import net.dataforte.doorkeeper.account.provider.AccountProvider;
 import net.dataforte.doorkeeper.annotations.Property;
@@ -31,14 +31,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class Doorkeeper {
 	private static final String AUTHENTICATOR = "authenticator";
 	private static final String AUTHORIZER = "authorizer";
 	private static final String ACCOUNTPROVIDER = "accountprovider";
 
-	static final Logger log = LoggerFactory.getLogger(Doorkeeper.class);
+	static final Logger log = LoggerFactory.make();
 
 	private static final String DOORKEEPER_PROPERTIES = "doorkeeper.properties";
 	private Map<String, Class<? extends Authenticator>> authenticators = new HashMap<String, Class<? extends Authenticator>>();
@@ -244,7 +243,8 @@ public class Doorkeeper {
 	public static Map<String, ?> json2map(String s) throws JSONException {
 		JSONObject json = new JSONObject(s);
 		Map<String, Object> map = new LinkedHashMap<String, Object>();
-		for (Iterator<String> it = json.keys(); it.hasNext();) {
+		for (@SuppressWarnings("unchecked")
+		Iterator<String> it = json.keys(); it.hasNext();) {
 			String key = it.next();
 			Object value = json.get(key);
 			if (value.getClass() == String.class) {

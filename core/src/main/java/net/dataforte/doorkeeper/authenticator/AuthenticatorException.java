@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.dataforte.doorkeeper;
+package net.dataforte.doorkeeper.authenticator;
 
 
 public class AuthenticatorException extends Exception {

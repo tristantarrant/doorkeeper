@@ -32,13 +32,13 @@ import jcifs.smb.SmbSession;
 import jcifs.util.Hexdump;
 import jcifs.util.LogStream;
 
+import net.dataforte.commons.slf4j.LoggerFactory;
 import net.dataforte.doorkeeper.annotations.Property;
 import net.dataforte.doorkeeper.authenticator.Authenticator;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorState;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorToken;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * NtlmAuthenticator is an authenticator which understands Microsoft's NTLM
@@ -55,7 +55,7 @@ public class NtlmAuthenticator implements Authenticator {
 
 	private static final String NTLM_HTTP_CHAL = "NtlmHttpChal";
 
-	static final Logger log = LoggerFactory.getLogger(NtlmAuthenticator.class);
+	private static final Logger log = LoggerFactory.make();
 
 	String defaultDomain;
 

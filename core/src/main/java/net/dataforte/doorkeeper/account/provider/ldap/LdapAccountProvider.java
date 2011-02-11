@@ -46,21 +46,21 @@ import javax.naming.ldap.PagedResultsResponseControl;
 import javax.naming.ldap.StartTlsRequest;
 import javax.naming.ldap.StartTlsResponse;
 
-import net.dataforte.doorkeeper.AuthenticatorException;
-import net.dataforte.doorkeeper.AuthenticatorUser;
+import net.dataforte.commons.slf4j.LoggerFactory;
 import net.dataforte.doorkeeper.account.provider.AccountProvider;
 import net.dataforte.doorkeeper.annotations.Property;
 import net.dataforte.doorkeeper.annotations.Required;
+import net.dataforte.doorkeeper.authenticator.AuthenticatorException;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorToken;
+import net.dataforte.doorkeeper.authenticator.AuthenticatorUser;
 import net.dataforte.doorkeeper.authenticator.PasswordAuthenticatorToken;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Property(name = "name", value = "ldap")
 public class LdapAccountProvider implements AccountProvider {
 	private static final String COM_SUN_JNDI_LDAP_CONNECT_POOL = "com.sun.jndi.ldap.connect.pool";
-	private static final Logger log = LoggerFactory.getLogger(LdapAccountProvider.class);
+	private static final Logger log = LoggerFactory.make();
 	static final Pattern MAPPING_REGEX = Pattern.compile("([\\w_\\-]+)(?:[\\s]*=[\\s]*)((?:[\'\"]).+?(?:[\'\"]))");
 	static final DateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 

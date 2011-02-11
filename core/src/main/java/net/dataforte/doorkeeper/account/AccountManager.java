@@ -18,10 +18,10 @@ package net.dataforte.doorkeeper.account;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.dataforte.doorkeeper.AuthenticatorException;
-import net.dataforte.doorkeeper.AuthenticatorUser;
 import net.dataforte.doorkeeper.account.provider.AccountProvider;
+import net.dataforte.doorkeeper.authenticator.AuthenticatorException;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorToken;
+import net.dataforte.doorkeeper.authenticator.AuthenticatorUser;
 
 public class AccountManager {
 	List<AccountProvider> accountProviders;

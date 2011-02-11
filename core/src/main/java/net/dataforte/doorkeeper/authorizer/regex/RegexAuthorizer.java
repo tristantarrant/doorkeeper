@@ -10,15 +10,15 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import net.dataforte.commons.CollectionUtils;
-import net.dataforte.doorkeeper.AuthenticatorException;
-import net.dataforte.doorkeeper.AuthenticatorUser;
-import net.dataforte.doorkeeper.RedirectAuthenticatorException;
+import net.dataforte.commons.slf4j.LoggerFactory;
+import net.dataforte.doorkeeper.User;
 import net.dataforte.doorkeeper.annotations.Property;
+import net.dataforte.doorkeeper.authenticator.AccessDeniedException;
+import net.dataforte.doorkeeper.authenticator.AuthenticatorException;
 import net.dataforte.doorkeeper.authorizer.Authorizer;
 import net.dataforte.doorkeeper.authorizer.BooleanAuthorizerOperator;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * RegexAuthorizer is an authorizer which matches URIs against a set of regular expressions and,
@@ -37,19 +37,17 @@ import org.slf4j.LoggerFactory;
  * <pre>authorizer.regex.aclMap={ "^/index.jsp":["$ALLOW_ALL"], "^/[css|js|img]/.*":["$ALLOW_ALL"], "^/auth/.*":["$AUTHENTICATED"],"^/admin/.*":["administrator"] }
  * authorizer.regex.redirectUrl=${baseUrl}/index.jsp</pre>
  * 
- * <p>If the acl is not satisfied the authorizer will redirect to the optional redirectURL,
- * otherwise an HTTP unauthorized error (403) is sent</p>  
+ * <p>If the acl is not satisfied the authorizer will throw an {@link AccessDeniedException}</p>  
  * 
  * @author Tristan Tarrant
  *
  */
 @Property(name = "name", value = "regex")
 public class RegexAuthorizer implements Authorizer {
-	final Logger log = LoggerFactory.getLogger(RegexAuthorizer.class);
+	private static final Logger log = LoggerFactory.make();
 
 	Map<Pattern, Set<String>> aclMap;
-	BooleanAuthorizerOperator operator = BooleanAuthorizerOperator.OR;
-	String redirectUrl;
+	BooleanAuthorizerOperator operator = BooleanAuthorizerOperator.OR;	
 
 	public RegexAuthorizer() {
 		aclMap = new LinkedHashMap<Pattern, Set<String>>();
@@ -73,28 +71,10 @@ public class RegexAuthorizer implements Authorizer {
 
 	public void setOperator(String operator) {
 		this.operator = BooleanAuthorizerOperator.valueOf(operator);
-	}
-	
-	public String getRedirectUrl() {
-		return redirectUrl;
-	}
-
-	public void setRedirectUrl(String redirectUrl) {
-		this.redirectUrl = redirectUrl;
-	}
-	
-	private boolean returnOrRedirect(boolean b) throws RedirectAuthenticatorException {
-		if(b)
-			return true;
-		else if(redirectUrl!=null) {
-			throw new RedirectAuthenticatorException(redirectUrl);
-		} else {
-			return false;
-		}
-	}
+	}	
 
 	@Override
-	public boolean authorize(AuthenticatorUser user, String resourceName) throws AuthenticatorException {
+	public boolean authorize(User user, String resourceName) throws AuthenticatorException {
 		for (Entry<Pattern, Set<String>> acl : aclMap.entrySet()) {
 			if (acl.getKey().matcher(resourceName).matches()) {
 				Set<String> set = acl.getValue();
@@ -114,11 +94,11 @@ public class RegexAuthorizer implements Authorizer {
 				}
 				switch (operator) {
 				case OR:
-					return returnOrRedirect(coincidences > 0);
+					return coincidences > 0;
 				case AND:
-					return returnOrRedirect(coincidences == acl.getValue().size());
+					return coincidences == acl.getValue().size();
 				case XOR:
-					return returnOrRedirect(coincidences == 1);
+					return coincidences == 1;
 				}
 
 			}

@@ -20,7 +20,8 @@ import java.security.Principal;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 
-import net.dataforte.doorkeeper.AuthenticatorUser;
+import net.dataforte.doorkeeper.User;
+import net.dataforte.doorkeeper.authenticator.AuthenticatorUser;
 
 public class AuthenticatorRequestWrapper extends HttpServletRequestWrapper {
 	
@@ -43,7 +44,7 @@ public class AuthenticatorRequestWrapper extends HttpServletRequestWrapper {
 		}
 	}
 
-	public AuthenticatorUser getUser() {
+	public User getUser() {
 		return user;
 	}
 

@@ -17,9 +17,9 @@ package net.dataforte.doorkeeper.account.provider;
 
 import java.util.List;
 
-import net.dataforte.doorkeeper.AuthenticatorException;
-import net.dataforte.doorkeeper.AuthenticatorUser;
+import net.dataforte.doorkeeper.authenticator.AuthenticatorException;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorToken;
+import net.dataforte.doorkeeper.authenticator.AuthenticatorUser;
 
 public interface AccountProvider {
 

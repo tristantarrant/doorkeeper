@@ -4,10 +4,10 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 
-import net.dataforte.doorkeeper.AuthenticatorUser;
 import net.dataforte.doorkeeper.account.provider.AccountProvider;
 import net.dataforte.doorkeeper.annotations.Property;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorToken;
+import net.dataforte.doorkeeper.authenticator.AuthenticatorUser;
 
 @Property(name = "name", value = "jdbc")
 public class JdbcAccountProvider implements AccountProvider {

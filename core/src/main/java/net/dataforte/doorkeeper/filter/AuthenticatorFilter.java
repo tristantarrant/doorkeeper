@@ -28,23 +28,25 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import net.dataforte.commons.slf4j.LoggerFactory;
 import net.dataforte.commons.web.URLUtils;
-import net.dataforte.doorkeeper.AuthenticatorException;
-import net.dataforte.doorkeeper.AuthenticatorUser;
 import net.dataforte.doorkeeper.Doorkeeper;
-import net.dataforte.doorkeeper.RedirectAuthenticatorException;
+import net.dataforte.doorkeeper.authenticator.AccessDeniedException;
 import net.dataforte.doorkeeper.authenticator.Authenticator;
+import net.dataforte.doorkeeper.authenticator.AuthenticatorException;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorToken;
+import net.dataforte.doorkeeper.authenticator.AuthenticatorUser;
 import net.dataforte.doorkeeper.authorizer.Authorizer;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 
 public class AuthenticatorFilter implements Filter {
-	private final static Logger log = LoggerFactory.getLogger(AuthenticatorFilter.class);
+	private static final Logger log = LoggerFactory.make();
 	private static final String SESSION_USER = AuthenticatorUser.class.getName();
 	private Doorkeeper doorkeeper;
 	private Pattern skipRegex = Pattern.compile(".+\\.(gif|png|jpg|jpeg|swf|js|css)$");
+	private String accessDeniedRedirectURL;
 
 	@Override
 	public void init(FilterConfig filterConfig) throws ServletException {
@@ -69,6 +71,14 @@ public class AuthenticatorFilter implements Filter {
 
 	public void setSkipRegex(String skipRegex) {
 		this.skipRegex = Pattern.compile(skipRegex);
+	}
+
+	public String getAccessDeniedRedirectURL() {
+		return accessDeniedRedirectURL;
+	}
+
+	public void setAccessDeniedRedirectURL(String accessDeniedRedirectURL) {
+		this.accessDeniedRedirectURL = accessDeniedRedirectURL;
 	}
 
 	@Override
@@ -152,14 +162,14 @@ public class AuthenticatorFilter implements Filter {
 		for (Authorizer auth : doorkeeper.getAuthorizerChain("filter")) {
 			try {
 				if (!auth.authorize(user, req.getServletPath())) {
-					res.sendError(HttpServletResponse.SC_FORBIDDEN);
-					return;
-				}
-			} catch (RedirectAuthenticatorException e) {
-				res.sendRedirect(URLUtils.urlRewrite(req, e.getRedirectUrl()));
-				return;
+					throw new AccessDeniedException(req.getServletPath());					
+				}		
 			} catch (AuthenticatorException e) {
-				res.sendError(HttpServletResponse.SC_FORBIDDEN);
+				if(accessDeniedRedirectURL!=null) {
+					res.sendRedirect(URLUtils.urlRewrite(req, accessDeniedRedirectURL));
+				} else {
+					res.sendError(HttpServletResponse.SC_FORBIDDEN);
+				}
 				return;
 			}
 		}

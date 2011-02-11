@@ -13,22 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.dataforte.doorkeeper;
+package net.dataforte.doorkeeper.authenticator;
 
 import java.io.Serializable;
-import java.security.Principal;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import net.dataforte.doorkeeper.User;
 import net.dataforte.doorkeeper.authorizer.Authorizer;
 
 /**
  * 
  * @author Tristan Tarrant
  */
-public class AuthenticatorUser implements Principal, Serializable {
+public class AuthenticatorUser implements Serializable, User {
 	String name;
 	Set<String> groups;
 	Map<String, String[]> properties;
@@ -45,6 +45,10 @@ public class AuthenticatorUser implements Principal, Serializable {
 		return name;
 	}
 
+	/* (non-Javadoc)
+	 * @see net.dataforte.doorkeeper.User#getGroups()
+	 */
+	@Override
 	public Set<String> getGroups() {
 		return groups;
 	}
@@ -54,10 +58,18 @@ public class AuthenticatorUser implements Principal, Serializable {
 		return "AuthenticatorUser [name=" + name + ", groups="+groups+"]";
 	}
 
+	/* (non-Javadoc)
+	 * @see net.dataforte.doorkeeper.User#isUserInRole(java.lang.String)
+	 */
+	@Override
 	public boolean isUserInRole(String role) {
 		return groups.contains(role);
 	}
 	
+	/* (non-Javadoc)
+	 * @see net.dataforte.doorkeeper.User#getPropertyValue(java.lang.String)
+	 */
+	@Override
 	public String getPropertyValue(String propertyName) {
 		String[] v = properties.get(propertyName);
 		return v.length==0?null:v[0];

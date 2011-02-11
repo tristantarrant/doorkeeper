@@ -10,7 +10,7 @@ import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.tagext.TagSupport;
 
 import net.dataforte.commons.CollectionUtils;
-import net.dataforte.doorkeeper.AuthenticatorUser;
+import net.dataforte.doorkeeper.User;
 import net.dataforte.doorkeeper.authorizer.BooleanAuthorizerOperator;
 
 public class AclTag extends TagSupport {
@@ -48,7 +48,7 @@ public class AclTag extends TagSupport {
 
 		Set<String> set = new HashSet<String>(Arrays.asList(groups.split(",")));
 		Set<String> userSet = null;
-		AuthenticatorUser user = (AuthenticatorUser) req.getUserPrincipal();
+		User user = (User) req.getUserPrincipal();
 		if (user == null) {
 			userSet = Collections.emptySet();
 		} else {

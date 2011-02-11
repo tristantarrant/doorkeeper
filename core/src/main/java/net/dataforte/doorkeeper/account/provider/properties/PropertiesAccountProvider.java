@@ -1,25 +1,33 @@
 package net.dataforte.doorkeeper.account.provider.properties;
 
+import static net.dataforte.doorkeeper.Doorkeeper.json2map;
+
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import javax.annotation.PostConstruct;
 
 import net.dataforte.commons.resources.ResourceFinder;
-import net.dataforte.doorkeeper.AuthenticatorException;
-import net.dataforte.doorkeeper.AuthenticatorUser;
 import net.dataforte.doorkeeper.account.provider.AccountProvider;
 import net.dataforte.doorkeeper.annotations.Property;
+import net.dataforte.doorkeeper.authenticator.AuthenticatorException;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorToken;
+import net.dataforte.doorkeeper.authenticator.AuthenticatorUser;
 import net.dataforte.doorkeeper.authenticator.PasswordAuthenticatorToken;
+
+import org.json.JSONException;
 
 @Property(name = "name", value = "properties")
 public class PropertiesAccountProvider implements AccountProvider {
 
+	private static final String PASSWORD_FIELD = "password";
 	String userProperties;
 	String groupProperties;
-	private Properties users;
+	private Map<String, Map<String,String>> users;
 	private Properties groups;
 
 	public String getUserProperties() {
@@ -47,19 +55,43 @@ public class PropertiesAccountProvider implements AccountProvider {
 			throw new IllegalStateException("groupProperties not specified");
 		}
 		try {
-			users = new Properties();
-			users.load(ResourceFinder.getResource(this.userProperties));
+			Properties p = new Properties();
+			p.load(ResourceFinder.getResource(this.userProperties));
+			parseUsers(p);
+			
 			groups = new Properties();
 			groups.load(ResourceFinder.getResource(this.groupProperties));
 		} catch (IOException e) {
 			throw new IllegalStateException("Cannot initialize", e);
 		}
 	}
+	
+	private void parseUsers(Properties props) {
+		users = new HashMap<String, Map<String,String>>();
+		for(String username : props.stringPropertyNames()) {
+			Map<String, String> userData = new HashMap<String, String>();
+			String value = props.getProperty(username);
+			
+			try {
+				Map<String, ?> map = json2map(value);
+				for(Entry<String, ?> entry : map.entrySet()) {
+					userData.put(entry.getKey(), entry.getValue().toString());
+				}
+				if(!userData.containsKey(PASSWORD_FIELD)) {
+					throw new IllegalStateException("User '"+username+"' in property file '"+userProperties+"' does not specify a password field");
+				}
+			} catch (JSONException e) {
+				// Not a JSON object, use it as a simple password
+				userData.put(PASSWORD_FIELD, value);
+			}
+			users.put(username, userData);
+		}
+	}
 
 	@Override
 	public AuthenticatorUser authenticate(AuthenticatorToken token) throws AuthenticatorException {
 		PasswordAuthenticatorToken passwordToken = (PasswordAuthenticatorToken) token;
-		String userPassword = users.getProperty(passwordToken.getPrincipalName());
+		String userPassword = users.get(passwordToken.getPrincipalName()).get(PASSWORD_FIELD);
 		if(userPassword!=null && userPassword.equals(passwordToken.getPassword())) {
 			return load(token);
 		} else {

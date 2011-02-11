@@ -1,8 +1,8 @@
 package net.dataforte.doorkeeper.provider.properties;
 
-import net.dataforte.doorkeeper.AuthenticatorUser;
 import net.dataforte.doorkeeper.account.provider.properties.PropertiesAccountProvider;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorToken;
+import net.dataforte.doorkeeper.authenticator.AuthenticatorUser;
 
 import org.junit.Assert;
 import org.junit.Test;
