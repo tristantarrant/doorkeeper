@@ -1,13 +1,13 @@
 package net.dataforte.doorkeeper.account.provider.properties;
 
-import static net.dataforte.doorkeeper.Doorkeeper.json2map;
-
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
@@ -17,19 +17,53 @@ import net.dataforte.doorkeeper.account.provider.AccountProvider;
 import net.dataforte.doorkeeper.annotations.Property;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorException;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorToken;
-import net.dataforte.doorkeeper.authenticator.AuthenticatorUser;
 import net.dataforte.doorkeeper.authenticator.PasswordAuthenticatorToken;
+import net.dataforte.doorkeeper.utils.JSONUtils;
 
 import org.json.JSONException;
 
 @Property(name = "name", value = "properties")
 public class PropertiesAccountProvider implements AccountProvider {
 
+	public class PropertiesUser implements User {
+		String name;
+		String password;
+
+		Set<String> groups = new HashSet<String>();
+		Map<String, String[]> properties = new HashMap<String, String[]>();
+
+		@Override
+		public String getName() {
+			return name;
+		}
+
+		@Override
+		public Set<String> getGroups() {
+			return groups;
+		}
+
+		@Override
+		public boolean isUserInRole(String role) {
+			return groups.contains(role);
+		}
+
+		@Override
+		public String getPropertyValue(String propertyName) {
+			String[] v = properties.get(propertyName);
+			return v.length == 0 ? null : v[0];
+		}
+
+		@Override
+		public String[] getPropertyValues(String propertyName) {
+			return properties.get(propertyName);
+		}
+
+	}
+
 	private static final String PASSWORD_FIELD = "password";
 	String userProperties;
 	String groupProperties;
-	private Map<String, Map<String,String>> users;
-	private Properties groups;
+	private Map<String, PropertiesUser> users;
 
 	public String getUserProperties() {
 		return userProperties;
@@ -49,67 +83,81 @@ public class PropertiesAccountProvider implements AccountProvider {
 
 	@PostConstruct
 	public void init() {
-		if(this.userProperties==null) {
+		if (this.userProperties == null) {
 			throw new IllegalStateException("userProperties not specified");
 		}
-		if(this.groupProperties==null) {
+		if (this.groupProperties == null) {
 			throw new IllegalStateException("groupProperties not specified");
 		}
 		try {
-			Properties p = new Properties();
-			p.load(ResourceFinder.getResource(this.userProperties));
-			parseUsers(p);
-			
-			groups = new Properties();
-			groups.load(ResourceFinder.getResource(this.groupProperties));
+			Properties up = new Properties();
+			up.load(ResourceFinder.getResource(this.userProperties));
+
+			Properties gp = new Properties();
+			gp.load(ResourceFinder.getResource(this.groupProperties));
+
+			parseUsers(up, gp);
+
 		} catch (IOException e) {
 			throw new IllegalStateException("Cannot initialize", e);
 		}
 	}
-	
-	private void parseUsers(Properties props) {
-		users = new HashMap<String, Map<String,String>>();
-		for(String username : props.stringPropertyNames()) {
-			Map<String, String> userData = new HashMap<String, String>();
-			String value = props.getProperty(username);
-			
+
+	private void parseUsers(Properties up, Properties gp) {
+		users = new HashMap<String, PropertiesUser>();
+		for (String username : up.stringPropertyNames()) {
+			PropertiesUser user = new PropertiesUser();
+			user.name = username;
+
+			String value = up.getProperty(username);
+
 			try {
-				Map<String, ?> map = json2map(value);
-				for(Entry<String, ?> entry : map.entrySet()) {
-					userData.put(entry.getKey(), entry.getValue().toString());
+				Map<String, ?> map = JSONUtils.json2map(value);
+				for (Entry<String, ?> entry : map.entrySet()) {
+					if(PASSWORD_FIELD.equals(entry.getKey())) {
+						user.password = entry.getValue().toString();
+					} else {
+						Object v = entry.getValue();
+						if(v instanceof String) {
+							user.properties.put(entry.getKey(), new String[] {(String)v});
+						} else if (v instanceof List) {
+							user.properties.put(entry.getKey(), ((List<String>)v).toArray(new String[0]));
+						}
+					}					
 				}
-				if(!userData.containsKey(PASSWORD_FIELD)) {
-					throw new IllegalStateException("User '"+username+"' in property file '"+userProperties+"' does not specify a password field");
+				if (user.password==null) {
+					throw new IllegalStateException("User '" + username + "' in property file '" + userProperties + "' does not specify a password field");
 				}
 			} catch (JSONException e) {
 				// Not a JSON object, use it as a simple password
-				userData.put(PASSWORD_FIELD, value);
+				user.password = value;
 			}
-			users.put(username, userData);
+			// Add all the groups
+			String gs = gp.getProperty(username);
+			if (gs != null) {				
+				for (String g : gs.split(",")) {
+					user.groups.add(g);
+				}
+			}
+			// Store the user keyed by the username
+			users.put(username, user);
 		}
 	}
 
 	@Override
 	public User authenticate(AuthenticatorToken token) throws AuthenticatorException {
 		PasswordAuthenticatorToken passwordToken = (PasswordAuthenticatorToken) token;
-		String userPassword = users.get(passwordToken.getPrincipalName()).get(PASSWORD_FIELD);
-		if(userPassword!=null && userPassword.equals(passwordToken.getPassword())) {
+		String userPassword = users.get(passwordToken.getPrincipalName()).password;
+		if (userPassword != null && userPassword.equals(passwordToken.getPassword())) {
 			return load(token);
 		} else {
-			throw new AuthenticatorException("Could not authenticate "+token.getPrincipalName());
+			throw new AuthenticatorException("Could not authenticate " + token.getPrincipalName());
 		}
 	}
 
 	@Override
 	public User load(AuthenticatorToken token) {
-		AuthenticatorUser authenticatorUser = new AuthenticatorUser(token.getPrincipalName());
-		String gs = groups.getProperty(token.getPrincipalName());
-		if(gs!=null) {
-			for(String g : gs.split(",")) {
-				authenticatorUser.getGroups().add(g);
-			}
-		}
-		return authenticatorUser;
+		return users.get(token.getPrincipalName());
 	}
 
 	@Override

@@ -3,10 +3,10 @@ package net.dataforte.doorkeeper.authorizer.regex;
 import java.util.Collection;
 import java.util.Map;
 
-import net.dataforte.doorkeeper.Doorkeeper;
 import net.dataforte.doorkeeper.User;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorUser;
 import net.dataforte.doorkeeper.authorizer.BooleanAuthorizerOperator;
+import net.dataforte.doorkeeper.utils.JSONUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -16,7 +16,7 @@ public class RegexAuthorizerTest {
 	@Test
 	public void testRegexAuthorizerOr() throws Exception {
 		RegexAuthorizer regexAuth = new RegexAuthorizer();
-		Map<String, Collection<String>> authMap = (Map<String, Collection<String>>) Doorkeeper.json2map("{\"^/perm1/.*\":[\"group1\"],\"^/perm2/.*\":[\"group2\"]}");
+		Map<String, Collection<String>> authMap = (Map<String, Collection<String>>) JSONUtils.json2map("{\"^/perm1/.*\":[\"group1\"],\"^/perm2/.*\":[\"group2\"]}");
 		regexAuth.setAclMap(authMap);
 		regexAuth.setOperator(BooleanAuthorizerOperator.OR.toString());
 		User user = new AuthenticatorUser("tom");
@@ -28,7 +28,7 @@ public class RegexAuthorizerTest {
 	@Test
 	public void testRegexAuthorizerAnd() throws Exception {
 		RegexAuthorizer regexAuth = new RegexAuthorizer();
-		Map<String, Collection<String>> authMap = (Map<String, Collection<String>>) Doorkeeper.json2map("{\"^/perm1/.*\":[\"group1\",\"group2\"],\"^/perm2/.*\":[\"group1\"]}");
+		Map<String, Collection<String>> authMap = (Map<String, Collection<String>>) JSONUtils.json2map("{\"^/perm1/.*\":[\"group1\",\"group2\"],\"^/perm2/.*\":[\"group1\"]}");
 		regexAuth.setAclMap(authMap);
 		regexAuth.setOperator(BooleanAuthorizerOperator.AND.toString());
 		User user = new AuthenticatorUser("tom");

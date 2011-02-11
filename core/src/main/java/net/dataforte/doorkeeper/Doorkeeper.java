@@ -6,8 +6,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -25,11 +23,10 @@ import net.dataforte.doorkeeper.account.provider.AccountProvider;
 import net.dataforte.doorkeeper.annotations.Property;
 import net.dataforte.doorkeeper.authenticator.Authenticator;
 import net.dataforte.doorkeeper.authorizer.Authorizer;
+import net.dataforte.doorkeeper.utils.JSONUtils;
 
 import org.apache.commons.beanutils.PropertyUtils;
-import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 
 public class Doorkeeper {
@@ -221,7 +218,7 @@ public class Doorkeeper {
 						if (String.class == propertyType) {
 							PropertyUtils.setProperty(spi, name, props.getProperty(propertyName));
 						} else if (Map.class == propertyType) {
-							PropertyUtils.setProperty(spi, name, json2map(props.getProperty(propertyName)));
+							PropertyUtils.setProperty(spi, name, JSONUtils.json2map(props.getProperty(propertyName)));
 						} else {
 							log.warn("Unhandled property {} on class {}", name, spiType);
 						}
@@ -240,27 +237,6 @@ public class Doorkeeper {
 		return Collections.unmodifiableList(spiChain);
 	}
 
-	public static Map<String, ?> json2map(String s) throws JSONException {
-		JSONObject json = new JSONObject(s);
-		Map<String, Object> map = new LinkedHashMap<String, Object>();
-		for (@SuppressWarnings("unchecked")
-		Iterator<String> it = json.keys(); it.hasNext();) {
-			String key = it.next();
-			Object value = json.get(key);
-			if (value.getClass() == String.class) {
-				map.put(key, value);
-			} else if (value.getClass() == JSONArray.class) {
-				List<String> l = new ArrayList<String>();
-				JSONArray a = (JSONArray) value;
-				for (int i = 0; i < a.length(); i++) {
-					l.add(a.getString(i));
-				}
-				map.put(key, l);
-			}
-		}
-		return map;
-	}
-
 	public void applyConfiguration(String prefix, Object obj) {
 		String propertyPrefix = prefix + ".";
 		for (String propertyName : properties.stringPropertyNames()) {
@@ -271,7 +247,7 @@ public class Doorkeeper {
 					if (String.class == propertyType) {
 						PropertyUtils.setProperty(obj, name, properties.getProperty(propertyName));
 					} else if (Map.class == propertyType) {
-						PropertyUtils.setProperty(obj, name, json2map(properties.getProperty(propertyName)));
+						PropertyUtils.setProperty(obj, name, JSONUtils.json2map(properties.getProperty(propertyName)));
 					} else {
 						log.warn("Unhandled property {} of type {} on class {}", new String[] {name, propertyType.getName(), obj.getClass().getName()});
 					}
