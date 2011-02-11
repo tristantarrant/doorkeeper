@@ -17,15 +17,15 @@ package net.dataforte.doorkeeper.account.provider;
 
 import java.util.List;
 
+import net.dataforte.doorkeeper.User;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorException;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorToken;
-import net.dataforte.doorkeeper.authenticator.AuthenticatorUser;
 
 public interface AccountProvider {
 
-	AuthenticatorUser authenticate(AuthenticatorToken token) throws AuthenticatorException;
+	User authenticate(AuthenticatorToken token) throws AuthenticatorException;
 
-	AuthenticatorUser load(AuthenticatorToken token) throws AuthenticatorException;
+	User load(AuthenticatorToken token) throws AuthenticatorException;
 	
-	List<AuthenticatorUser> getUsersInGroup(String group);
+	List<User> getUsersInGroup(String group);
 }

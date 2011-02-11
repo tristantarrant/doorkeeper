@@ -32,7 +32,7 @@ public class AuthenticatorUser implements Serializable, User {
 	String name;
 	Set<String> groups;
 	Map<String, String[]> properties;
-	
+
 	public AuthenticatorUser(String name) {
 		this.name = name;
 		this.groups = new HashSet<String>();
@@ -45,9 +45,6 @@ public class AuthenticatorUser implements Serializable, User {
 		return name;
 	}
 
-	/* (non-Javadoc)
-	 * @see net.dataforte.doorkeeper.User#getGroups()
-	 */
 	@Override
 	public Set<String> getGroups() {
 		return groups;
@@ -55,25 +52,24 @@ public class AuthenticatorUser implements Serializable, User {
 
 	@Override
 	public String toString() {
-		return "AuthenticatorUser [name=" + name + ", groups="+groups+"]";
+		return "AuthenticatorUser [name=" + name + ", groups=" + groups + "]";
 	}
 
-	/* (non-Javadoc)
-	 * @see net.dataforte.doorkeeper.User#isUserInRole(java.lang.String)
-	 */
+
 	@Override
 	public boolean isUserInRole(String role) {
 		return groups.contains(role);
 	}
-	
-	/* (non-Javadoc)
-	 * @see net.dataforte.doorkeeper.User#getPropertyValue(java.lang.String)
-	 */
+
 	@Override
 	public String getPropertyValue(String propertyName) {
 		String[] v = properties.get(propertyName);
-		return v.length==0?null:v[0];
+		return v.length == 0 ? null : v[0];
 	}
-	
-	
+
+	@Override
+	public String[] getPropertyValues(String propertyName) {
+		return properties.get(propertyName);
+	}
+
 }

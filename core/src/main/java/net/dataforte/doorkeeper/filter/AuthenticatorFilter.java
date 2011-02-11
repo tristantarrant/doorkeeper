@@ -31,11 +31,11 @@ import javax.servlet.http.HttpSession;
 import net.dataforte.commons.slf4j.LoggerFactory;
 import net.dataforte.commons.web.URLUtils;
 import net.dataforte.doorkeeper.Doorkeeper;
+import net.dataforte.doorkeeper.User;
 import net.dataforte.doorkeeper.authenticator.AccessDeniedException;
 import net.dataforte.doorkeeper.authenticator.Authenticator;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorException;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorToken;
-import net.dataforte.doorkeeper.authenticator.AuthenticatorUser;
 import net.dataforte.doorkeeper.authorizer.Authorizer;
 
 import org.slf4j.Logger;
@@ -43,7 +43,7 @@ import org.slf4j.Logger;
 
 public class AuthenticatorFilter implements Filter {
 	private static final Logger log = LoggerFactory.make();
-	private static final String SESSION_USER = AuthenticatorUser.class.getName();
+	private static final String SESSION_USER = User.class.getName();
 	private Doorkeeper doorkeeper;
 	private Pattern skipRegex = Pattern.compile(".+\\.(gif|png|jpg|jpeg|swf|js|css)$");
 	private String accessDeniedRedirectURL;
@@ -96,11 +96,11 @@ public class AuthenticatorFilter implements Filter {
 		// Get the session only if it exists already
 		HttpSession session = req.getSession(false);
 
-		AuthenticatorUser user = null;
+		User user = null;
 
 		if (session != null) {
 			// Attempt to get user from session
-			user = (AuthenticatorUser) session.getAttribute(SESSION_USER);
+			user = (User) session.getAttribute(SESSION_USER);
 		}
 		// We still don't have a user
 		if (user == null) {

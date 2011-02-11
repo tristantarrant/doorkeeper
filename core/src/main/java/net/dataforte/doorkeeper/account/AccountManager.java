@@ -18,10 +18,10 @@ package net.dataforte.doorkeeper.account;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.dataforte.doorkeeper.User;
 import net.dataforte.doorkeeper.account.provider.AccountProvider;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorException;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorToken;
-import net.dataforte.doorkeeper.authenticator.AuthenticatorUser;
 
 public class AccountManager {
 	List<AccountProvider> accountProviders;
@@ -34,10 +34,10 @@ public class AccountManager {
 		return accountProviders;
 	}	
 	
-	public AuthenticatorUser authenticate(AuthenticatorToken token) throws AuthenticatorException {
+	public User authenticate(AuthenticatorToken token) throws AuthenticatorException {
 		// cycle through all providers
 		for(AccountProvider accountProvider : accountProviders) {
-			AuthenticatorUser user = accountProvider.authenticate(token);
+			User user = accountProvider.authenticate(token);
 			if(user!=null) {
 				return user;
 			}
@@ -45,10 +45,10 @@ public class AccountManager {
 		return null;
 	}
 
-	public AuthenticatorUser load(AuthenticatorToken token) throws AuthenticatorException {
+	public User load(AuthenticatorToken token) throws AuthenticatorException {
 		for(AccountProvider accountProvider : accountProviders) {
 			
-			AuthenticatorUser user = accountProvider.load(token);
+			User user = accountProvider.load(token);
 			if(user!=null) {
 				return user;
 			}			
@@ -57,8 +57,8 @@ public class AccountManager {
 		throw new AuthenticatorException("No account providers for %s", token);
 	}
 	
-	public List<AuthenticatorUser> getUsersInGroup(String groupName) {
-		List<AuthenticatorUser> users = new ArrayList<AuthenticatorUser>();
+	public List<User> getUsersInGroup(String groupName) {
+		List<User> users = new ArrayList<User>();
 		
 		return users;
 	}

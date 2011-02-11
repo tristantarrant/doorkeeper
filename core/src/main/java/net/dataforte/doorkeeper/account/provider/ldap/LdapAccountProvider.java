@@ -47,6 +47,7 @@ import javax.naming.ldap.StartTlsRequest;
 import javax.naming.ldap.StartTlsResponse;
 
 import net.dataforte.commons.slf4j.LoggerFactory;
+import net.dataforte.doorkeeper.User;
 import net.dataforte.doorkeeper.account.provider.AccountProvider;
 import net.dataforte.doorkeeper.annotations.Property;
 import net.dataforte.doorkeeper.annotations.Required;
@@ -243,7 +244,7 @@ public class LdapAccountProvider implements AccountProvider {
 	}
 
 	@Override
-	public AuthenticatorUser authenticate(AuthenticatorToken token) throws AuthenticatorException {
+	public User authenticate(AuthenticatorToken token) throws AuthenticatorException {
 		LdapContext ctx = null;
 		LdapContext ctx2 = null;
 
@@ -304,7 +305,7 @@ public class LdapAccountProvider implements AccountProvider {
 		}
 	}
 
-	public AuthenticatorUser load(AuthenticatorToken token) {
+	public User load(AuthenticatorToken token) {
 		// Check the cache first
 		LdapEntry entry = (LdapEntry) cache.get(token.getPrincipalName());
 
@@ -350,7 +351,7 @@ public class LdapAccountProvider implements AccountProvider {
 	}
 
 	@Override
-	public List<AuthenticatorUser> getUsersInGroup(String group) {
+	public List<User> getUsersInGroup(String group) {
 		// TODO Auto-generated method stub
 		return null;
 	}

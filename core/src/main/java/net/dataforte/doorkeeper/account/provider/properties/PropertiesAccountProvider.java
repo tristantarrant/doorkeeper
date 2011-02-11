@@ -12,6 +12,7 @@ import java.util.Properties;
 import javax.annotation.PostConstruct;
 
 import net.dataforte.commons.resources.ResourceFinder;
+import net.dataforte.doorkeeper.User;
 import net.dataforte.doorkeeper.account.provider.AccountProvider;
 import net.dataforte.doorkeeper.annotations.Property;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorException;
@@ -89,7 +90,7 @@ public class PropertiesAccountProvider implements AccountProvider {
 	}
 
 	@Override
-	public AuthenticatorUser authenticate(AuthenticatorToken token) throws AuthenticatorException {
+	public User authenticate(AuthenticatorToken token) throws AuthenticatorException {
 		PasswordAuthenticatorToken passwordToken = (PasswordAuthenticatorToken) token;
 		String userPassword = users.get(passwordToken.getPrincipalName()).get(PASSWORD_FIELD);
 		if(userPassword!=null && userPassword.equals(passwordToken.getPassword())) {
@@ -100,7 +101,7 @@ public class PropertiesAccountProvider implements AccountProvider {
 	}
 
 	@Override
-	public AuthenticatorUser load(AuthenticatorToken token) {
+	public User load(AuthenticatorToken token) {
 		AuthenticatorUser authenticatorUser = new AuthenticatorUser(token.getPrincipalName());
 		String gs = groups.getProperty(token.getPrincipalName());
 		if(gs!=null) {
@@ -112,7 +113,7 @@ public class PropertiesAccountProvider implements AccountProvider {
 	}
 
 	@Override
-	public List<AuthenticatorUser> getUsersInGroup(String group) {
+	public List<User> getUsersInGroup(String group) {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -10,5 +10,7 @@ public interface User extends Principal {
 	public abstract boolean isUserInRole(String role);
 
 	public abstract String getPropertyValue(String propertyName);
+	
+	public abstract String[] getPropertyValues(String propertyName);
 
 }

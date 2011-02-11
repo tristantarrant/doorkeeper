@@ -21,15 +21,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 
 import net.dataforte.doorkeeper.User;
-import net.dataforte.doorkeeper.authenticator.AuthenticatorUser;
 
 public class AuthenticatorRequestWrapper extends HttpServletRequestWrapper {
 	
-	AuthenticatorUser user;
+	User user;
 	Principal prePrincipal;
 	String preRemoteUser;
 	
-	public AuthenticatorRequestWrapper(HttpServletRequest req, AuthenticatorUser user) {
+	public AuthenticatorRequestWrapper(HttpServletRequest req, User user) {
 		super(req);
 		this.user = user;
 		this.prePrincipal = req.getUserPrincipal();

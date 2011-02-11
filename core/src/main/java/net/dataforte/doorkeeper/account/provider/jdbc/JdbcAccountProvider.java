@@ -4,10 +4,10 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 
+import net.dataforte.doorkeeper.User;
 import net.dataforte.doorkeeper.account.provider.AccountProvider;
 import net.dataforte.doorkeeper.annotations.Property;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorToken;
-import net.dataforte.doorkeeper.authenticator.AuthenticatorUser;
 
 @Property(name = "name", value = "jdbc")
 public class JdbcAccountProvider implements AccountProvider {
@@ -53,19 +53,19 @@ public class JdbcAccountProvider implements AccountProvider {
 	}
 
 	@Override
-	public AuthenticatorUser authenticate(AuthenticatorToken token) {
+	public User authenticate(AuthenticatorToken token) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public AuthenticatorUser load(AuthenticatorToken token) {
+	public User load(AuthenticatorToken token) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public List<AuthenticatorUser> getUsersInGroup(String group) {
+	public List<User> getUsersInGroup(String group) {
 		// TODO Auto-generated method stub
 		return null;
 	}
