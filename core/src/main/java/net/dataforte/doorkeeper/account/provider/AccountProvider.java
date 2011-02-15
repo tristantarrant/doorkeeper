@@ -15,6 +15,7 @@
  */
 package net.dataforte.doorkeeper.account.provider;
 
+import java.util.Collection;
 import java.util.List;
 
 import net.dataforte.doorkeeper.User;
@@ -28,4 +29,10 @@ public interface AccountProvider {
 	User load(AuthenticatorToken token) throws AuthenticatorException;
 	
 	List<User> getUsersInGroup(String group);
+
+	Collection<String> getGroups();
+	
+	boolean isWritable();
+	
+	void store(User user) throws AuthenticatorException;
 }

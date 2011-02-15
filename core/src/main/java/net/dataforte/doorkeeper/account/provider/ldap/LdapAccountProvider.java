@@ -19,6 +19,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -48,7 +49,7 @@ import javax.naming.ldap.StartTlsResponse;
 
 import net.dataforte.commons.slf4j.LoggerFactory;
 import net.dataforte.doorkeeper.User;
-import net.dataforte.doorkeeper.account.provider.AccountProvider;
+import net.dataforte.doorkeeper.account.provider.AbstractAccountProvider;
 import net.dataforte.doorkeeper.annotations.Property;
 import net.dataforte.doorkeeper.annotations.Required;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorException;
@@ -59,7 +60,7 @@ import net.dataforte.doorkeeper.authenticator.PasswordAuthenticatorToken;
 import org.slf4j.Logger;
 
 @Property(name = "name", value = "ldap")
-public class LdapAccountProvider implements AccountProvider {
+public class LdapAccountProvider extends AbstractAccountProvider {
 	private static final String COM_SUN_JNDI_LDAP_CONNECT_POOL = "com.sun.jndi.ldap.connect.pool";
 	private static final Logger log = LoggerFactory.make();
 	static final Pattern MAPPING_REGEX = Pattern.compile("([\\w_\\-]+)(?:[\\s]*=[\\s]*)((?:[\'\"]).+?(?:[\'\"]))");
@@ -304,7 +305,8 @@ public class LdapAccountProvider implements AccountProvider {
 			closeContexts(ctx2, ctx);
 		}
 	}
-
+	
+	@Override
 	public User load(AuthenticatorToken token) {
 		// Check the cache first
 		LdapEntry entry = (LdapEntry) cache.get(token.getPrincipalName());
@@ -352,6 +354,12 @@ public class LdapAccountProvider implements AccountProvider {
 
 	@Override
 	public List<User> getUsersInGroup(String group) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Collection<String> getGroups() {
 		// TODO Auto-generated method stub
 		return null;
 	}

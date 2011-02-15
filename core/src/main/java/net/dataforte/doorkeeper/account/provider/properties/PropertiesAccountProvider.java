@@ -8,12 +8,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TreeSet;
 
 import javax.annotation.PostConstruct;
 
 import net.dataforte.commons.resources.ResourceFinder;
 import net.dataforte.doorkeeper.User;
-import net.dataforte.doorkeeper.account.provider.AccountProvider;
+import net.dataforte.doorkeeper.account.provider.AbstractAccountProvider;
 import net.dataforte.doorkeeper.annotations.Property;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorException;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorToken;
@@ -23,7 +24,7 @@ import net.dataforte.doorkeeper.utils.JSONUtils;
 import org.json.JSONException;
 
 @Property(name = "name", value = "properties")
-public class PropertiesAccountProvider implements AccountProvider {
+public class PropertiesAccountProvider extends AbstractAccountProvider {
 
 	public class PropertiesUser implements User {
 		String name;
@@ -61,9 +62,11 @@ public class PropertiesAccountProvider implements AccountProvider {
 	}
 
 	private static final String PASSWORD_FIELD = "password";
-	String userProperties;
-	String groupProperties;
+	private boolean writable;
+	private String userProperties;
+	private String groupProperties;
 	private Map<String, PropertiesUser> users;
+	private Set<String> groups;
 
 	public String getUserProperties() {
 		return userProperties;
@@ -79,6 +82,15 @@ public class PropertiesAccountProvider implements AccountProvider {
 
 	public void setGroupProperties(String groupProperties) {
 		this.groupProperties = groupProperties;
+	}
+
+	public void setWritable(boolean writable) {
+		this.writable = writable;
+	}
+
+	@Override
+	public boolean isWritable() {
+		return writable;
 	}
 
 	@PostConstruct
@@ -105,6 +117,8 @@ public class PropertiesAccountProvider implements AccountProvider {
 
 	private void parseUsers(Properties up, Properties gp) {
 		users = new HashMap<String, PropertiesUser>();
+		groups = new TreeSet<String>();
+		
 		for (String username : up.stringPropertyNames()) {
 			PropertiesUser user = new PropertiesUser();
 			user.name = username;
@@ -114,18 +128,18 @@ public class PropertiesAccountProvider implements AccountProvider {
 			try {
 				Map<String, ?> map = JSONUtils.json2map(value);
 				for (Entry<String, ?> entry : map.entrySet()) {
-					if(PASSWORD_FIELD.equals(entry.getKey())) {
+					if (PASSWORD_FIELD.equals(entry.getKey())) {
 						user.password = entry.getValue().toString();
 					} else {
 						Object v = entry.getValue();
-						if(v instanceof String) {
-							user.properties.put(entry.getKey(), new String[] {(String)v});
+						if (v instanceof String) {
+							user.properties.put(entry.getKey(), new String[] { (String) v });
 						} else if (v instanceof List) {
-							user.properties.put(entry.getKey(), ((List<String>)v).toArray(new String[0]));
+							user.properties.put(entry.getKey(), ((List<String>) v).toArray(new String[0]));
 						}
-					}					
+					}
 				}
-				if (user.password==null) {
+				if (user.password == null) {
 					throw new IllegalStateException("User '" + username + "' in property file '" + userProperties + "' does not specify a password field");
 				}
 			} catch (JSONException e) {
@@ -134,9 +148,11 @@ public class PropertiesAccountProvider implements AccountProvider {
 			}
 			// Add all the groups
 			String gs = gp.getProperty(username);
-			if (gs != null) {				
+			if (gs != null) {
 				for (String g : gs.split(",")) {
 					user.groups.add(g);
+					// Keep track of all groups
+					groups.add(g);
 				}
 			}
 			// Store the user keyed by the username
@@ -160,9 +176,4 @@ public class PropertiesAccountProvider implements AccountProvider {
 		return users.get(token.getPrincipalName());
 	}
 
-	@Override
-	public List<User> getUsersInGroup(String group) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }

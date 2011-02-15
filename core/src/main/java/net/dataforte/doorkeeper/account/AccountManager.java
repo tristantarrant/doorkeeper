@@ -16,7 +16,10 @@
 package net.dataforte.doorkeeper.account;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import net.dataforte.doorkeeper.User;
 import net.dataforte.doorkeeper.account.provider.AccountProvider;
@@ -57,8 +60,30 @@ public class AccountManager {
 		throw new AuthenticatorException("No account providers for %s", token);
 	}
 	
+	/**
+	 * Returns a list of all available groups
+	 * 
+	 * @return
+	 */
+	public Collection<String> getGroups() {
+		Set<String> groups = new TreeSet<String>();
+		for(AccountProvider accountProvider : accountProviders) {
+			groups.addAll(accountProvider.getGroups());
+		}
+		return groups;
+	}
+	
+	/**
+	 * Returns a list of users belonging to the specified group
+	 * 
+	 * @param groupName
+	 * @return
+	 */
 	public List<User> getUsersInGroup(String groupName) {
 		List<User> users = new ArrayList<User>();
+		for(AccountProvider accountProvider : accountProviders) {
+			users.addAll(accountProvider.getUsersInGroup(groupName));
+		}
 		
 		return users;
 	}

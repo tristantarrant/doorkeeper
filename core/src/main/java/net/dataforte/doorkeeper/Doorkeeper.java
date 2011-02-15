@@ -94,8 +94,7 @@ public class Doorkeeper {
 	 * @param sc
 	 * @return
 	 */
-	public synchronized static Doorkeeper getInstance(ServletContext sc) {
-		
+	public synchronized static Doorkeeper getInstance(ServletContext sc) {		
 		Doorkeeper instance = (Doorkeeper) sc.getAttribute(Doorkeeper.class.getName());
 		if (instance == null) {
 			instance = new Doorkeeper(sc);

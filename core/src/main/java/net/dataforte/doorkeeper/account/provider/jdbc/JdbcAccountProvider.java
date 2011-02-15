@@ -1,20 +1,34 @@
 package net.dataforte.doorkeeper.account.provider.jdbc;
 
-import java.util.List;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 import javax.annotation.PostConstruct;
+import javax.naming.NamingException;
+import javax.sql.DataSource;
 
+import net.dataforte.commons.JNDIUtils;
+import net.dataforte.commons.slf4j.LoggerFactory;
 import net.dataforte.doorkeeper.User;
-import net.dataforte.doorkeeper.account.provider.AccountProvider;
+import net.dataforte.doorkeeper.account.provider.AbstractAccountProvider;
 import net.dataforte.doorkeeper.annotations.Property;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorToken;
+import net.dataforte.doorkeeper.authenticator.PasswordAuthenticatorToken;
+
+import org.slf4j.Logger;
 
 @Property(name = "name", value = "jdbc")
-public class JdbcAccountProvider implements AccountProvider {
-	String url;
-	String username;
-	String password;
-	String jndi;
+public class JdbcAccountProvider extends AbstractAccountProvider {
+	static final Logger log = LoggerFactory.make();
+	private String url;
+	private String username;
+	private String password;
+	private String driverClassName;
+	private String jndi;
+	private DataSource dataSource;
+	private String authenticateSql;
+	private boolean writable;
 
 	public String getUrl() {
 		return url;
@@ -22,6 +36,14 @@ public class JdbcAccountProvider implements AccountProvider {
 
 	public void setUrl(String url) {
 		this.url = url;
+	}
+
+	public String getDriverClassName() {
+		return driverClassName;
+	}
+
+	public void setDriverClassName(String driverClassName) {
+		this.driverClassName = driverClassName;
 	}
 
 	public String getUsername() {
@@ -48,27 +70,39 @@ public class JdbcAccountProvider implements AccountProvider {
 		this.jndi = jndi;
 	}
 
+	public boolean isWritable() {
+		return writable;
+	}
+
+	public void setWritable(boolean writable) {
+		this.writable = writable;
+	}
+
 	@PostConstruct
 	public void init() {
+		try {
+			dataSource = JNDIUtils.lookup(jndi, DataSource.class);
+		} catch (NamingException e) {
+			throw new IllegalStateException("Could not retrieve DataSource from JNDI "+jndi, e);
+		}
 	}
 
 	@Override
 	public User authenticate(AuthenticatorToken token) {
+		PasswordAuthenticatorToken passwordToken = (PasswordAuthenticatorToken) token;
+		Connection c = null;
+		PreparedStatement ps = null;
+		try {
+			c = dataSource.getConnection();
+			ps = c.prepareStatement(authenticateSql);
+			ps.setString(1, passwordToken.getPrincipalName());
+		} catch (SQLException e) {
+			log.error("Could not authenticate a user", e);
+		} finally {
+			JDBCHelper.close(c);
+		}
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	@Override
-	public User load(AuthenticatorToken token) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public List<User> getUsersInGroup(String group) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	
 }
