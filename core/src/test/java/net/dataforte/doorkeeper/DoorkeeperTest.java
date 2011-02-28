@@ -31,11 +31,11 @@ public class DoorkeeperTest {
 		
 		JdbcAccountProvider jdbcProvider1 = (JdbcAccountProvider) doorkeeper.getAccountProviderChain().get(1);
 		
-		assertEquals("jdbc:mysql://localhost:3306/userdb", jdbcProvider1.getUrl());
+		assertEquals("jdbc:derby:memory:db1", jdbcProvider1.getUrl());
 		
 		JdbcAccountProvider jdbcProvider2 = (JdbcAccountProvider) doorkeeper.getAccountProviderChain().get(2);
 		
-		assertEquals("jdbc:mysql://remotehost:3306/userdb", jdbcProvider2.getUrl());
+		assertEquals("jdbc:derby:memory:db2", jdbcProvider2.getUrl());
 		
 	}
 

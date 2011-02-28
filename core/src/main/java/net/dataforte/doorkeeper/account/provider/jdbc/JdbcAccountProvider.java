@@ -81,7 +81,9 @@ public class JdbcAccountProvider extends AbstractAccountProvider {
 	@PostConstruct
 	public void init() {
 		try {
-			dataSource = JNDIUtils.lookup(jndi, DataSource.class);
+			if(jndi!=null) {
+				dataSource = JNDIUtils.lookup(jndi, DataSource.class);
+			}
 		} catch (NamingException e) {
 			throw new IllegalStateException("Could not retrieve DataSource from JNDI "+jndi, e);
 		}
