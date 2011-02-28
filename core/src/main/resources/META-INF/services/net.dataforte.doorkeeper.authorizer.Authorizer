@@ -1,1 +1,2 @@
+net.dataforte.doorkeeper.authorizer.any.AnyAuthorizer
 net.dataforte.doorkeeper.authorizer.regex.RegexAuthorizer
