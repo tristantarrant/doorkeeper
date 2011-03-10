@@ -205,6 +205,9 @@ public class Doorkeeper {
 					spiName = spiType = chainLink;
 				}
 				Class<? extends T> spiClass = spiMap.get(spiType);
+				if(spiClass==null) {
+					throw new IllegalArgumentException("The specified SPI "+spiType+" does not exist");
+				}
 				// Instantiate the SPI (this should not fail as the
 				// ServiceFinder has already returned a list of instantiatable
 				// SPIs)
