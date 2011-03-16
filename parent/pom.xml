@@ -1,22 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<parent>
 		<groupId>net.dataforte</groupId>
-		<artifactId>dataforte-parent</artifactId>	
+		<artifactId>dataforte-parent</artifactId>
 		<version>6</version>
 	</parent>
-	
+
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.dataforte.doorkeeper</groupId>
 	<artifactId>doorkeeper-parent</artifactId>
-	<version>0.3.10</version>
+	<version>0.3.11-SNAPSHOT</version>
+
 	<packaging>pom</packaging>
 	<name>Doorkeeper Parent Artifact</name>
-	
+
 	<properties>
 		<slf4j.version>1.6.1</slf4j.version>
 	</properties>
-	
+
 	<contributors>
 		<contributor>
 			<name>Tristan Tarrant</name>
