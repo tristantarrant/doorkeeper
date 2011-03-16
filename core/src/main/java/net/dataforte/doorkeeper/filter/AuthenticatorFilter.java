@@ -155,6 +155,9 @@ public class AuthenticatorFilter implements Filter {
 					return;
 				}
 				
+				// Exit from authenticator loop if we have a user
+				if(user!=null) 
+					break;
 			}
 		}
 		
