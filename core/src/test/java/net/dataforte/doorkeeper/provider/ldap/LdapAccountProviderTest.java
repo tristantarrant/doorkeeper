@@ -11,5 +11,5 @@ public class LdapAccountProviderTest {
 		Assert.assertEquals(4, dnels.length);
 		Assert.assertEquals("cn=name", dnels[0]);
 		Assert.assertEquals("dc=domain", dnels[2]);
-	}
+	}	
 }
