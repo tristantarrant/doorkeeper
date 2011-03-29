@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import net.dataforte.doorkeeper.User;
 import net.dataforte.doorkeeper.account.provider.ldap.LdapAccountProvider;
 import net.dataforte.doorkeeper.authenticator.AuthenticatorToken;
+import net.dataforte.doorkeeper.authenticator.PasswordAuthenticatorToken;
 
 import org.apache.directory.server.annotations.CreateLdapServer;
 import org.apache.directory.server.annotations.CreateTransport;
@@ -43,6 +44,12 @@ public class LdapAccountProviderTest extends AbstractLdapTestUnit {
 		User user = provider.load(token);
 		assertNotNull(user);
 		assertEquals("testPerson1", user.getName());
-		assertEquals(2, user.getGroups().size());
+		assertEquals(3, user.getGroups().size());
+		
+		AuthenticatorToken passwordToken = new PasswordAuthenticatorToken("testPerson1", "secret");
+		User user2 = provider.authenticate(passwordToken);
+		assertNotNull(user2);
+		assertEquals("testPerson1", user2.getName());
+		assertEquals(3, user2.getGroups().size());
 	}
 }

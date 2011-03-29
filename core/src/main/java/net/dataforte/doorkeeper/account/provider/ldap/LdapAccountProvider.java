@@ -244,71 +244,15 @@ public class LdapAccountProvider extends AbstractAccountProvider {
 			this.groupMap.put(Pattern.compile(entry.getKey()), entry.getValue());
 		}
 	}
-
-	@Override
-	public User authenticate(AuthenticatorToken token) throws AuthenticatorException {
-		LdapContext ctx = null;
-		LdapContext ctx2 = null;
-
-		PasswordAuthenticatorToken passwordToken = (PasswordAuthenticatorToken) token;
-		try {
-			// Fetch the user from the cache
-			LdapEntry entry = (LdapEntry) cache.get(passwordToken.getPrincipalName());
-
-			// Not in cache, search for it in LDAP
-			if (entry == null) {
-				List<LdapEntry> entries = ldapSearch(username2filter(passwordToken.getPrincipalName()));
-				entry = entries.size() > 0 ? entries.get(0) : null;
-			}
-
-			if (entry == null) {
-				if (log.isDebugEnabled()) {
-					log.debug("User " + passwordToken.getPrincipalName() + " does not exist on this provider");
-				}
-				return null;
-			} else if (entry == NULL_USER) {
-				if (log.isDebugEnabled()) {
-					log.debug("User " + passwordToken.getPrincipalName() + " does not exist on this provider");
-				}
-				return null;
-			} else {
-				Hashtable<String, String> authEnv = new Hashtable<String, String>(env);
-
-				authEnv.put(Context.SECURITY_PRINCIPAL, entry.dn);
-				authEnv.put(Context.SECURITY_CREDENTIALS, passwordToken.getPassword());
-
-				// Disable connection pool for authentication
-				authEnv.put(COM_SUN_JNDI_LDAP_CONNECT_POOL, "false");
-
-				ctx = new InitialLdapContext(authEnv, null);
-				if (useTls) {
-					StartTlsResponse tls = (StartTlsResponse) ctx.extendedOperation(new StartTlsRequest());
-					tls.negotiate();
-				}
-				// Lookup the user itself
-				ctx2 = (LdapContext) ctx.lookup(entry.dn);
-
-				if (log.isDebugEnabled()) {
-					log.debug("Authenticated successfully user " + passwordToken.getPrincipalName());
-				}
-
-				// Cache the data
-				cache.put(passwordToken.getPrincipalName(), entry);
-
-				AuthenticatorUser authenticatorUser = new AuthenticatorUser(passwordToken.getPrincipalName());
-				authenticatorUser.getGroups().addAll(entry.addGroups);
-				return authenticatorUser;
-			}
-		} catch (Exception e) {
-			log.error("Error during LDAP authentication", e);
-			throw new AuthenticatorException(e);
-		} finally {
-			closeContexts(ctx2, ctx);
-		}
+	
+	private User entry2user(String principalName, LdapEntry entry) {
+		AuthenticatorUser user = new AuthenticatorUser(principalName);
+		user.getGroups().addAll(entry.addGroups);
+		user.getGroups().removeAll(entry.delGroups);
+		return user;
 	}
-
-	@Override
-	public User load(AuthenticatorToken token) {
+	
+	private LdapEntry loadInternal(AuthenticatorToken token) {
 		// Check the cache first
 		LdapEntry entry = (LdapEntry) cache.get(token.getPrincipalName());
 
@@ -317,7 +261,7 @@ public class LdapAccountProvider extends AbstractAccountProvider {
 				log.debug("Cache lookup for " + token.getPrincipalName() + " = " + entry);
 			}
 			if (entry != NULL_USER) {
-				return new AuthenticatorUser(token.getPrincipalName());
+				return entry;
 			} else {
 				return null;
 			}
@@ -343,14 +287,67 @@ public class LdapAccountProvider extends AbstractAccountProvider {
 				// Cache the entry data
 				cache.put(token.getPrincipalName(), entry);
 
-				// Success, create/update the user on the underlying providers
-				AuthenticatorUser authenticatorUser = new AuthenticatorUser(token.getPrincipalName());
-				authenticatorUser.getGroups().addAll(entry.addGroups);
-				return authenticatorUser;
+				return entry;
 			}
 		} catch (NamingException e) {
 			log.error("LDAP Error", e);
 			return null;
+		}
+	}
+
+	@Override
+	public User authenticate(AuthenticatorToken token) throws AuthenticatorException {
+		LdapContext ctx = null;
+		LdapContext ctx2 = null;
+
+		PasswordAuthenticatorToken passwordToken = (PasswordAuthenticatorToken) token;
+		try {		
+			LdapEntry entry = loadInternal(token);
+			
+			if (entry == null) {				
+				return null;
+			} else {
+				// Perform the actual authentication
+				Hashtable<String, String> authEnv = new Hashtable<String, String>(env);
+
+				authEnv.put(Context.SECURITY_PRINCIPAL, entry.dn);
+				authEnv.put(Context.SECURITY_CREDENTIALS, passwordToken.getPassword());
+
+				// Disable connection pool for authentication
+				authEnv.put(COM_SUN_JNDI_LDAP_CONNECT_POOL, "false");
+
+				ctx = new InitialLdapContext(authEnv, null);
+				if (useTls) {
+					StartTlsResponse tls = (StartTlsResponse) ctx.extendedOperation(new StartTlsRequest());
+					tls.negotiate();
+				}
+				// Lookup the user itself
+				ctx2 = (LdapContext) ctx.lookup(entry.dn);
+
+				if (log.isDebugEnabled()) {
+					log.debug("Authenticated successfully user " + passwordToken.getPrincipalName());
+				}
+
+				// Cache the data
+				cache.put(passwordToken.getPrincipalName(), entry);
+				
+				return entry2user(passwordToken.getPrincipalName(), entry);
+			}
+		} catch (Exception e) {
+			log.error("Error during LDAP authentication", e);
+			throw new AuthenticatorException(e);
+		} finally {
+			closeContexts(ctx2, ctx);
+		}
+	}
+
+	@Override
+	public User load(AuthenticatorToken token) {
+		LdapEntry entry = loadInternal(token);
+		if(entry==null) {
+			return null;
+		} else {
+			return entry2user(token.getPrincipalName(), entry);
 		}
 	}
 

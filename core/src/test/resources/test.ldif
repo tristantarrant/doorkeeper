@@ -1,0 +1,22 @@
+dn: cn=testPerson1,ou=system 
+objectClass: person 
+cn: testPerson1 
+sn: sn_testPerson1
+userPassword: secret
+
+
+dn: cn=testPerson2,ou=system 
+objectClass: person 
+cn: testPerson2 
+sn: sn_testPerson2
+
+dn: cn=testGroup1,ou=system
+objectClass: groupOfNames
+cn: testGroup1
+member: cn=testPerson1,ou=system 
+
+dn: cn=testGroup2,ou=system
+objectClass: groupOfNames
+cn: testGroup2
+member: cn=testGroup1,ou=system 
+member: cn=testPerson2,ou=system
