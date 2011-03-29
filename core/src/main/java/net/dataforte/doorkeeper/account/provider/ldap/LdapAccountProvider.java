@@ -37,6 +37,7 @@ import javax.naming.Context;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
+import javax.naming.directory.Attributes;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.Control;
@@ -219,8 +220,6 @@ public class LdapAccountProvider extends AbstractAccountProvider {
 	public void setAttributeMap(Map<String, String> attributeMap) {
 		this.attributeMap = attributeMap;
 	}
-	
-	
 
 	public Map<Pattern, String> getOuMap() {
 		return ouMap;
@@ -228,7 +227,7 @@ public class LdapAccountProvider extends AbstractAccountProvider {
 
 	public void setOuMap(Map<String, String> ouMap) {
 		this.ouMap.clear();
-		for(Entry<String, String> entry : ouMap.entrySet()) {
+		for (Entry<String, String> entry : ouMap.entrySet()) {
 			this.ouMap.put(Pattern.compile(entry.getKey()), entry.getValue());
 		}
 	}
@@ -239,7 +238,7 @@ public class LdapAccountProvider extends AbstractAccountProvider {
 
 	public void setGroupMap(Map<String, String> groupMap) {
 		this.groupMap.clear();
-		for(Entry<String, String> entry : groupMap.entrySet()) {
+		for (Entry<String, String> entry : groupMap.entrySet()) {
 			this.groupMap.put(Pattern.compile(entry.getKey()), entry.getValue());
 		}
 	}
@@ -305,7 +304,7 @@ public class LdapAccountProvider extends AbstractAccountProvider {
 			closeContexts(ctx2, ctx);
 		}
 	}
-	
+
 	@Override
 	public User load(AuthenticatorToken token) {
 		// Check the cache first
@@ -374,7 +373,7 @@ public class LdapAccountProvider extends AbstractAccountProvider {
 		}
 
 		cache = new HashMap<String, Object>();
-		
+
 		// Add the uid attribute without a value
 		attributeMap.put(uidAttribute, null);
 		// Add the memberOf attribute without a value
@@ -532,6 +531,30 @@ public class LdapAccountProvider extends AbstractAccountProvider {
 		}
 	}
 
+	private void recursiveSearch(LdapContext ctx, String dn, String field, Set<String> results) throws NamingException {
+		Attributes attrs = ctx.getAttributes(dn, new String[] { field });
+		NamingEnumeration<? extends Attribute> en = null;
+		for (en = attrs.getAll(); en.hasMoreElements();) {
+			Object aobj = en.nextElement();
+			if (aobj instanceof Attribute) {
+				Attribute attr = (Attribute) aobj;
+				NamingEnumeration<?> e = null;
+				for (e = attr.getAll(); e.hasMoreElements();) {
+					Object vobj = e.nextElement();
+					if (vobj instanceof String) {
+						String value = (String) vobj;
+						if (!results.contains(value)) {
+							results.add(value);
+							recursiveSearch(ctx, value, field, results);
+						}
+					}
+				}
+				closeEnumerations(e);
+			}
+		}
+		closeEnumerations(en);
+	}
+
 	private Set<String> searchMembership(LdapContext ctx, String dn) {
 		NamingEnumeration<SearchResult> en = null;
 		Set<String> groups = new HashSet<String>();
@@ -549,6 +572,8 @@ public class LdapAccountProvider extends AbstractAccountProvider {
 				while (en != null && en.hasMoreElements()) {
 					SearchResult sr = en.nextElement();
 					groups.add(sr.getNameInNamespace());
+					// Now fill out the recursive group structure
+					groups.addAll(searchMembership(ctx, sr.getName()));
 				}
 				closeEnumerations(en);
 
@@ -564,7 +589,7 @@ public class LdapAccountProvider extends AbstractAccountProvider {
 					}
 				}
 			} while (cookie != null);
-
+			
 			return groups;
 		} catch (Exception e) {
 			log.error("Search error", e);
@@ -575,12 +600,13 @@ public class LdapAccountProvider extends AbstractAccountProvider {
 	}
 
 	private void remapGroups(LdapEntry item, Set<String> groups) {
-		
-		// If a group map has not been specified, simply extract the group's name from its DN
-		if(groupMap.isEmpty()) {
+
+		// If a group map has not been specified, simply extract the group's
+		// name from its DN
+		if (groupMap.isEmpty()) {
 			for (String group : groups) {
 				String rdns[] = group.split("\\s*,\\s*");
-				item.addGroups.add(rdns[0].substring(rdns[0].indexOf('=')+1));
+				item.addGroups.add(rdns[0].substring(rdns[0].indexOf('=') + 1));
 			}
 		} else {
 			// Remap them using the groupMap
