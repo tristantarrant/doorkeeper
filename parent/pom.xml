@@ -16,6 +16,7 @@
 
 	<properties>
 		<slf4j.version>1.6.1</slf4j.version>
+		<apacheds.version>1.5.7</apacheds.version>
 	</properties>
 
 	<contributors>

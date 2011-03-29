@@ -30,6 +30,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Pattern;
 
 import javax.annotation.PostConstruct;
@@ -67,7 +69,7 @@ public class LdapAccountProvider extends AbstractAccountProvider {
 	static final Pattern MAPPING_REGEX = Pattern.compile("([\\w_\\-]+)(?:[\\s]*=[\\s]*)((?:[\'\"]).+?(?:[\'\"]))");
 	static final DateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
-	private Map<String, Object> cache;
+	private ConcurrentMap<String, Object> cache;
 	private Hashtable<String, String> env;
 	private String searchBase;
 	private String userBase;
@@ -342,8 +344,9 @@ public class LdapAccountProvider extends AbstractAccountProvider {
 				cache.put(token.getPrincipalName(), entry);
 
 				// Success, create/update the user on the underlying providers
-
-				return new AuthenticatorUser(token.getPrincipalName());
+				AuthenticatorUser authenticatorUser = new AuthenticatorUser(token.getPrincipalName());
+				authenticatorUser.getGroups().addAll(entry.addGroups);
+				return authenticatorUser;
 			}
 		} catch (NamingException e) {
 			log.error("LDAP Error", e);
@@ -372,7 +375,7 @@ public class LdapAccountProvider extends AbstractAccountProvider {
 			throw new IllegalStateException("Parameter 'searchBase' is required");
 		}
 
-		cache = new HashMap<String, Object>();
+		cache = new ConcurrentHashMap<String, Object>();		
 
 		// Add the uid attribute without a value
 		attributeMap.put(uidAttribute, null);
@@ -573,7 +576,7 @@ public class LdapAccountProvider extends AbstractAccountProvider {
 					SearchResult sr = en.nextElement();
 					groups.add(sr.getNameInNamespace());
 					// Now fill out the recursive group structure
-					groups.addAll(searchMembership(ctx, sr.getName()));
+					groups.addAll(searchMembership(ctx, sr.getNameInNamespace()));
 				}
 				closeEnumerations(en);
 

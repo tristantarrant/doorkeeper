@@ -10,6 +10,14 @@
 		</layout>
 	</appender>
 	
+	<logger name="JdbmIndex">
+		<level value="ERROR" />
+	</logger>
+	
+	<logger name="JdbmTable">
+		<level value="ERROR" />
+	</logger>
+	
 	<logger name="org.apache">
 		<level value="ERROR" />
 	</logger>
