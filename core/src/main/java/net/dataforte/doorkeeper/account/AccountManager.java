@@ -45,7 +45,8 @@ public class AccountManager {
 				return user;
 			}
 		}
-		return null;
+		// None of the account providers was able to load the user
+		throw new AuthenticatorException("No account providers for %s", token);
 	}
 
 	public User load(AuthenticatorToken token) throws AuthenticatorException {

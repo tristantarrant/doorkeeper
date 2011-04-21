@@ -2,6 +2,7 @@ package net.dataforte.doorkeeper.account.provider.jdbc;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import javax.annotation.PostConstruct;
@@ -28,6 +29,7 @@ public class JdbcAccountProvider extends AbstractAccountProvider {
 	private String jndi;
 	private DataSource dataSource;
 	private String authenticateSql;
+	private String authorizeSql;
 	private boolean writable;
 
 	public String getUrl() {
@@ -76,16 +78,33 @@ public class JdbcAccountProvider extends AbstractAccountProvider {
 
 	public void setWritable(boolean writable) {
 		this.writable = writable;
+
+	}
+
+	public String getAuthenticateSql() {
+		return authenticateSql;
+	}
+
+	public void setAuthenticateSql(String authenticateSql) {
+		this.authenticateSql = authenticateSql;
+	}
+
+	public String getAuthorizeSql() {
+		return authorizeSql;
+	}
+
+	public void setAuthorizeSql(String authorizeSql) {
+		this.authorizeSql = authorizeSql;
 	}
 
 	@PostConstruct
 	public void init() {
 		try {
-			if(jndi!=null) {
+			if (jndi != null) {
 				dataSource = JNDIUtils.lookup(jndi, DataSource.class);
 			}
 		} catch (NamingException e) {
-			throw new IllegalStateException("Could not retrieve DataSource from JNDI "+jndi, e);
+			throw new IllegalStateException("Could not retrieve DataSource from JNDI " + jndi, e);
 		}
 	}
 
@@ -94,10 +113,12 @@ public class JdbcAccountProvider extends AbstractAccountProvider {
 		PasswordAuthenticatorToken passwordToken = (PasswordAuthenticatorToken) token;
 		Connection c = null;
 		PreparedStatement ps = null;
+		ResultSet rs = null;
 		try {
 			c = dataSource.getConnection();
 			ps = c.prepareStatement(authenticateSql);
 			ps.setString(1, passwordToken.getPrincipalName());
+			rs = ps.executeQuery();
 		} catch (SQLException e) {
 			log.error("Could not authenticate a user", e);
 		} finally {
