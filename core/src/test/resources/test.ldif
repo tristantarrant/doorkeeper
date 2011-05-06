@@ -4,11 +4,15 @@ cn: testPerson1
 sn: sn_testPerson1
 userPassword: secret
 
-
 dn: cn=testPerson2,ou=system 
 objectClass: person 
 cn: testPerson2 
 sn: sn_testPerson2
+
+dn: cn=testPerson3,ou=system 
+objectClass: person 
+cn: testPerson3 
+sn: sn_testPerson3
 
 dn: cn=testGroup1,ou=system
 objectClass: groupOfNames
@@ -20,3 +24,14 @@ objectClass: groupOfNames
 cn: testGroup2
 member: cn=testGroup1,ou=system 
 member: cn=testPerson2,ou=system
+
+dn: cn=testGroup3,ou=system
+objectClass: groupOfNames
+cn: testGroup3
+member: cn=testGroup4,ou=system
+member: cn=testPerson3,ou=system
+
+dn: cn=testGroup4,ou=system
+objectClass: groupOfNames
+cn: testGroup4
+member: cn=testGroup3,ou=system

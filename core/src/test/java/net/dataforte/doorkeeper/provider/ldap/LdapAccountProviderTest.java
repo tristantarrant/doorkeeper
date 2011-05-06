@@ -52,4 +52,27 @@ public class LdapAccountProviderTest extends AbstractLdapTestUnit {
 		assertEquals("testPerson1", user2.getName());
 		assertEquals(3, user2.getGroups().size());
 	}
+	
+	@Test
+	public void testRecursion() throws Exception {
+		assertNotNull(ldapServer);
+		// Verify that the server is correctly initialized
+		assertTrue(service.getAdminSession().exists(new DN("cn=testPerson3,ou=system")));
+		
+		// Perform the actual test
+		LdapAccountProvider provider = new LdapAccountProvider();
+		provider.setUrl("ldap://localhost:"+ldapServer.getPort());
+		provider.setSearchBase("ou=system");
+		provider.setUserBase("ou=system");
+		provider.setGroupBase("ou=system");
+		provider.setUidAttribute("cn");
+		provider.init();
+		
+		AuthenticatorToken token = new AuthenticatorToken("testPerson3");
+		User user = provider.load(token);
+		assertNotNull(user);
+		assertEquals("testPerson3", user.getName());
+		assertEquals(3, user.getGroups().size());
+		
+	}
 }
