@@ -93,6 +93,11 @@ public class PropertiesAccountProvider extends AbstractAccountProvider {
 		return writable;
 	}
 
+	@Override
+	public void flushCaches() {
+		
+	}
+
 	@PostConstruct
 	public void init() {
 		if (this.userProperties == null) {

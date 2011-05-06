@@ -296,6 +296,11 @@ public class LdapAccountProvider extends AbstractAccountProvider {
 	}
 
 	@Override
+	public void flushCaches() {
+		cache.clear();
+	}
+
+	@Override
 	public User authenticate(AuthenticatorToken token) throws AuthenticatorException {
 		LdapContext ctx = null;
 		LdapContext ctx2 = null;
@@ -501,7 +506,7 @@ public class LdapAccountProvider extends AbstractAccountProvider {
 					closeEnumerations(ne);
 
 					if (groupBase != null) {
-						remapGroups(item, searchMembership(ctx, item.dn));
+						remapGroups(item, searchMembership(ctx, item.dn, new HashSet<String>()));
 					}
 
 					results.add(item);
@@ -555,9 +560,8 @@ public class LdapAccountProvider extends AbstractAccountProvider {
 		closeEnumerations(en);
 	}
 
-	private Set<String> searchMembership(LdapContext ctx, String dn) {
+	private Set<String> searchMembership(LdapContext ctx, String dn, Set<String> groups) {
 		NamingEnumeration<SearchResult> en = null;
-		Set<String> groups = new HashSet<String>();
 		try {
 			SearchControls searchCtls = new SearchControls();
 			searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
@@ -571,9 +575,11 @@ public class LdapAccountProvider extends AbstractAccountProvider {
 				en = ctx.search(groupBase, String.format("(%s=%s)", memberAttribute, dn), searchCtls);
 				while (en != null && en.hasMoreElements()) {
 					SearchResult sr = en.nextElement();
-					groups.add(sr.getNameInNamespace());
-					// Now fill out the recursive group structure
-					groups.addAll(searchMembership(ctx, sr.getNameInNamespace()));
+					if(!groups.contains(sr.getNameInNamespace())) {
+						groups.add(sr.getNameInNamespace());
+						// Now fill out the recursive group structure
+						searchMembership(ctx, sr.getNameInNamespace(), groups);
+					}
 				}
 				closeEnumerations(en);
 

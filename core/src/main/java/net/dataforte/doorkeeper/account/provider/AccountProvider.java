@@ -35,4 +35,6 @@ public interface AccountProvider {
 	boolean isWritable();
 	
 	void store(User user) throws AuthenticatorException;
+	
+	void flushCaches();
 }

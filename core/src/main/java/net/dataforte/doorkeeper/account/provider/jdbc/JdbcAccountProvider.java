@@ -97,6 +97,12 @@ public class JdbcAccountProvider extends AbstractAccountProvider {
 		this.authorizeSql = authorizeSql;
 	}
 
+	@Override
+	public void flushCaches() {
+		// TODO Auto-generated method stub
+
+	}
+
 	@PostConstruct
 	public void init() {
 		try {
