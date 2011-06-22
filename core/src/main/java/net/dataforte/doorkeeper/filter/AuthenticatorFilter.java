@@ -136,7 +136,7 @@ public class AuthenticatorFilter implements Filter {
 					String principalName = token.getPrincipalName();
 					if (principalName != null) {
 						try {
-							user = doorkeeper.getAccountManager().authenticate(token);
+							user = doorkeeper.getAccountManager(chain).authenticate(token);
 						} catch (AuthenticatorException e) {
 							// Authentication failed, restart it
 							auth.restart(req, res);
