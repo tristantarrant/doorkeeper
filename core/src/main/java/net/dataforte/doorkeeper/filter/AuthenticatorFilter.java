@@ -109,7 +109,7 @@ public class AuthenticatorFilter implements Filter {
 		}
 		// We still don't have a user
 		if (user == null) {
-			for (Authenticator auth : doorkeeper.getAuthenticatorChain("filter")) {
+			for (Authenticator auth : doorkeeper.getAuthenticatorChain(chain)) {
 				AuthenticatorToken token = auth.negotiate(req, res);
 				switch (token.getState()) {
 
