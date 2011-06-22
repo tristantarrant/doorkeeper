@@ -6,9 +6,13 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.ServletContext;
@@ -30,6 +34,7 @@ import org.json.JSONException;
 import org.slf4j.Logger;
 
 public class Doorkeeper {
+	public static final String DEFAULT_CHAIN = "default";
 	private static final String AUTHENTICATOR = "authenticator";
 	private static final String AUTHORIZER = "authorizer";
 	private static final String ACCOUNTPROVIDER = "accountprovider";
@@ -41,10 +46,10 @@ public class Doorkeeper {
 	private Map<String, Class<? extends Authorizer>> authorizers = new HashMap<String, Class<? extends Authorizer>>();
 	private Map<String, Class<? extends AccountProvider>> accountProviders = new HashMap<String, Class<? extends AccountProvider>>();
 
-	private List<Authenticator> authenticatorChain;
-	private List<Authorizer> authorizerChain;
-	private List<AccountProvider> accountProviderChain;
-	private AccountManager accountManager;
+	private Map<String, List<Authenticator>> authenticatorChain;
+	private Map<String, List<Authorizer>> authorizerChain;
+	private Map<String, List<AccountProvider>> accountProviderChain;
+	private Map<String, AccountManager> accountManager;
 
 	private Properties properties;
 	
@@ -136,8 +141,8 @@ public class Doorkeeper {
 	/**
 	 * Retrieves the authenticator chain for the specified context
 	 */
-	public List<Authenticator> getAuthenticatorChain(String context) {
-		return authenticatorChain;
+	public List<Authenticator> getAuthenticatorChain(String chain) {
+		return authenticatorChain.get(chain);
 	}
 
 	/**
@@ -146,23 +151,31 @@ public class Doorkeeper {
 	 * @return
 	 */
 	public List<Authenticator> getAuthenticatorChain() {
-		return authenticatorChain;
+		return getAuthenticatorChain(DEFAULT_CHAIN);
 	}
 
-	public List<Authorizer> getAuthorizerChain(String context) {
-		return authorizerChain;
+	public List<Authorizer> getAuthorizerChain(String chain) {
+		return authorizerChain.get(chain);
 	}
 
 	public List<Authorizer> getAuthorizerChain() {
-		return authorizerChain;
+		return getAuthorizerChain(DEFAULT_CHAIN);
+	}
+	
+	public List<AccountProvider> getAccountProviderChain(String chain) {
+		return accountProviderChain.get(chain);
 	}
 
 	public List<AccountProvider> getAccountProviderChain() {
-		return accountProviderChain;
+		return getAccountProviderChain(DEFAULT_CHAIN);
 	}
 
+	public AccountManager getAccountManager(String chain) {
+		return accountManager.get(chain);
+	}
+	
 	public AccountManager getAccountManager() {
-		return accountManager;
+		return getAccountManager(DEFAULT_CHAIN);
 	}
 
 	/**
@@ -173,24 +186,56 @@ public class Doorkeeper {
 			properties = new Properties();
 			properties.load(propertiesStream);
 
-			authenticatorChain = buildChain(AUTHENTICATOR, properties, authenticators);
-			authorizerChain = buildChain(AUTHORIZER, properties, authorizers);
-			accountProviderChain = buildChain(ACCOUNTPROVIDER, properties, accountProviders);
-
-			accountManager = new AccountManager(accountProviderChain);
+			authenticatorChain = new HashMap<String, List<Authenticator>>();
+			authorizerChain = new HashMap<String, List<Authorizer>>();
+			accountProviderChain = new HashMap<String, List<AccountProvider>>();
+			accountManager = new HashMap<String, AccountManager>();
+			
+			// Find all of the chains
+			Set<String> chains = findChains(properties);
+			for(String chain : chains) {
+				authenticatorChain.put(chain, buildChain(chain, AUTHENTICATOR, properties, authenticators));
+				
+				authorizerChain.put(chain, buildChain(chain, AUTHORIZER, properties, authorizers));
+				
+				accountProviderChain.put(chain, buildChain(chain, ACCOUNTPROVIDER, properties, accountProviders));
+				
+				accountManager.put(chain, new AccountManager(getAccountProviderChain(chain)));
+				
+				if(log.isInfoEnabled()) {
+					log.info("Loaded chain ["+chain+"]");
+				}
+			}
+			
 		} catch (Exception e) {
 			log.error("Could not load configuration '" + DOORKEEPER_PROPERTIES + "'", e);
 		}
 	}
 
-	private static <T> List<T> buildChain(String prefix, Properties props, Map<String, Class<? extends T>> spiMap) throws InstantiationException, IllegalAccessException, InvocationTargetException,
+	private Set<String> findChains(Properties props) {
+		Set<String> chains = new HashSet<String>();
+		Pattern chainPattern = Pattern.compile("(\\w+)\\.chain\\.?(\\w+)?");
+		for (String propertyName : props.stringPropertyNames()) {
+			Matcher matcher = chainPattern.matcher(propertyName);
+			if(matcher.matches()) {
+				String chain = matcher.group(2);
+				if(chain==null)
+					chains.add(DEFAULT_CHAIN);
+				else
+					chains.add(chain);				
+			}
+		}
+		return chains;
+	}
+
+	private static <T> List<T> buildChain(String chainName, String prefix, Properties props, Map<String, Class<? extends T>> spiMap) throws InstantiationException, IllegalAccessException, InvocationTargetException,
 			NoSuchMethodException, JSONException {
-		String chainName = prefix + ".chain";
-		if (!props.containsKey(chainName)) {
-			throw new IllegalStateException("Missing '" + chainName + "' property in configuration file");
+		String chainPropertyName = prefix + ".chain"+(DEFAULT_CHAIN.equals(chainName)?"":"."+chainName);
+		if (!props.containsKey(chainPropertyName)) {
+			throw new IllegalStateException("Missing '" + chainPropertyName + "' property in configuration file");
 		}
 		List<T> spiChain = new ArrayList<T>();
-		String chain = props.getProperty(chainName, "").trim();
+		String chain = props.getProperty(chainPropertyName, "").trim();
 		if (chain.length() > 0) {
 			String[] chainLinks = chain.split(",[\\s]*");
 			for (String chainLink : chainLinks) {

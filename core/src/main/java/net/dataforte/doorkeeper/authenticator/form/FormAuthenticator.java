@@ -81,6 +81,7 @@ public class FormAuthenticator implements Authenticator {
 	@Override
 	public AuthenticatorToken complete(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		response.sendRedirect(URLUtils.urlRewrite(request, this.loginSuccessUrl));
+		response.flushBuffer();
 		return new AuthenticatorToken(AuthenticatorState.NONE);
 	}
 

@@ -90,7 +90,7 @@ public class LdapAccountProvider extends AbstractAccountProvider {
 	private Map<Pattern, String> ouMap = new LinkedHashMap<Pattern, String>();
 	private Map<Pattern, String> groupMap = new LinkedHashMap<Pattern, String>();
 	private Map<String, String> attributeMap = new LinkedHashMap<String, String>();
-	private DateFormat serverDateFormat;
+	private DateFormat serverDateFormat = new SimpleDateFormat("yyyyMMddHHmmss'Z'");
 
 	static final LdapEntry NULL_USER = new LdapEntry(null);
 
@@ -249,6 +249,9 @@ public class LdapAccountProvider extends AbstractAccountProvider {
 		AuthenticatorUser user = new AuthenticatorUser(principalName);
 		user.getGroups().addAll(entry.addGroups);
 		user.getGroups().removeAll(entry.delGroups);
+		for(Entry<String, String> attr : entry.attributes.entrySet()) {
+			user.getProperties().put(attr.getKey(), new String[] {attr.getValue()});
+		}
 		return user;
 	}
 	
@@ -358,8 +361,30 @@ public class LdapAccountProvider extends AbstractAccountProvider {
 
 	@Override
 	public List<User> getUsersInGroup(String group) {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			if (log.isDebugEnabled()) {
+				log.debug("LDAP search for group " + group);
+			}
+			// First of all find the group
+			List<LdapEntry> entries = ldapSearch(group2filter(group));
+			if (entries.size() == 0) {
+				if (log.isDebugEnabled()) {
+					log.debug(group + " not found in LDAP");
+				}				
+				return null;
+			} else {
+				LdapEntry entry = entries.get(0);
+				if (log.isDebugEnabled()) {
+					log.debug(group + " found in LDAP");
+				}
+				
+
+				return null;
+			}
+		} catch (NamingException e) {
+			log.error("LDAP Error", e);
+			return null;
+		}
 	}
 
 	@Override
@@ -420,17 +445,31 @@ public class LdapAccountProvider extends AbstractAccountProvider {
 	 */
 	private String username2filter(String username) {
 		if (attributeFilter == null || attributeFilter.equals("")) {
-			return uidAttribute + "=" + username;
+			return String.format("%s=%s", uidAttribute, username);
 		} else {
 			return "(&(" + uidAttribute + "=" + username + ")(" + attributeFilter + "))";
 		}
 	}
+	
+	/**
+	 * Creates an LDAP filter for finding a group based on its name
+	 * 
+	 * @param username
+	 * @return
+	 */
+	private String group2filter(String groupname) {
+		return String.format("%s=%s", groupAttribute, groupname);
+	}
 
 	private List<LdapEntry> ldapSearch(String filter) throws NamingException {
+		return ldapSearch(filter, searchBase);
+	}
+	
+	private List<LdapEntry> ldapSearch(String filter, String base) throws NamingException {
 		LdapContext ctx = null;
 		try {
 			ctx = new InitialLdapContext(env, null);
-			List<LdapEntry> results = search(ctx, searchBase, filter);
+			List<LdapEntry> results = search(ctx, base, filter);
 			return results;
 		} finally {
 			closeContexts(ctx);
@@ -560,6 +599,14 @@ public class LdapAccountProvider extends AbstractAccountProvider {
 		closeEnumerations(en);
 	}
 
+	/**
+	 * Searches recursively for all groups which contain the specified dn
+	 * 
+	 * @param ctx
+	 * @param dn
+	 * @param groups
+	 * @return
+	 */
 	private Set<String> searchMembership(LdapContext ctx, String dn, Set<String> groups) {
 		NamingEnumeration<SearchResult> en = null;
 		try {

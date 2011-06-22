@@ -50,6 +50,10 @@ public class AuthenticatorUser implements Serializable, User {
 		return groups;
 	}
 
+	public Map<String, String[]> getProperties() {
+		return properties;
+	}
+
 	@Override
 	public String toString() {
 		return "AuthenticatorUser [name=" + name + ", groups=" + groups + "]";
@@ -64,7 +68,7 @@ public class AuthenticatorUser implements Serializable, User {
 	@Override
 	public String getPropertyValue(String propertyName) {
 		String[] v = properties.get(propertyName);
-		return v.length == 0 ? null : v[0];
+		return (v==null || v.length == 0) ? null : v[0];
 	}
 
 	@Override

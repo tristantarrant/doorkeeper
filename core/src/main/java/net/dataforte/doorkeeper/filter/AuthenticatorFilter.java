@@ -47,11 +47,16 @@ public class AuthenticatorFilter implements Filter {
 	private Doorkeeper doorkeeper;
 	private Pattern skipRegex = Pattern.compile(".+\\.(gif|png|jpg|jpeg|swf|js|css)$");
 	private String accessDeniedRedirectURL;
+	private String chain = Doorkeeper.DEFAULT_CHAIN;
 
 	@Override
 	public void init(FilterConfig filterConfig) throws ServletException {
 		if (log.isInfoEnabled()) {
 			log.info("Initializing AuthenticatorFilter...");
+		}
+		String chain = filterConfig.getInitParameter("chain");
+		if(chain!=null) {
+			this.chain = chain;
 		}
 		setDoorkeeper(Doorkeeper.getInstance(filterConfig.getServletContext()));
 	}
@@ -82,13 +87,13 @@ public class AuthenticatorFilter implements Filter {
 	}
 
 	@Override
-	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+	public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain) throws IOException, ServletException {
 		final HttpServletRequest req = (HttpServletRequest) request;
 		final HttpServletResponse res = (HttpServletResponse) response;
 		
 		// Do not try to authenticate/authorize resources matching the skipFilterRegex pattern
 		if(skipRegex.matcher(req.getRequestURI()).matches()) {
-			chain.doFilter(request, response);
+			filterChain.doFilter(request, response);
 			return;
 		}
 
@@ -143,7 +148,9 @@ public class AuthenticatorFilter implements Filter {
 							log.debug("User = " + principalName);
 						}
 						session.setAttribute(SESSION_USER, user);
-						auth.complete(req, res);						
+						auth.complete(req, res);
+						if(res.isCommitted())
+							return;
 					} else {
 						// Authentication failed, restart it
 						auth.restart(req, res);
@@ -162,7 +169,7 @@ public class AuthenticatorFilter implements Filter {
 		}
 		
 		/*** AUTHORIZATION PHASE ***/
-		for (Authorizer auth : doorkeeper.getAuthorizerChain("filter")) {
+		for (Authorizer auth : doorkeeper.getAuthorizerChain(chain)) {
 			try {
 				if (!auth.authorize(user, req.getServletPath())) {
 					throw new AccessDeniedException(req.getServletPath());					
@@ -177,7 +184,7 @@ public class AuthenticatorFilter implements Filter {
 			}
 		}
 
-		chain.doFilter(new AuthenticatorRequestWrapper(req, user), response);
+		filterChain.doFilter(new AuthenticatorRequestWrapper(req, user), response);
 	}
 
 	@Override
