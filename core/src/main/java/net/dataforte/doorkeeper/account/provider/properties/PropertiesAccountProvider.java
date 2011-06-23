@@ -168,7 +168,11 @@ public class PropertiesAccountProvider extends AbstractAccountProvider {
 	@Override
 	public User authenticate(AuthenticatorToken token) throws AuthenticatorException {
 		PasswordAuthenticatorToken passwordToken = (PasswordAuthenticatorToken) token;
-		String userPassword = users.get(passwordToken.getPrincipalName()).password;
+		PropertiesUser user = users.get(passwordToken.getPrincipalName());
+		if(user==null) {
+			throw new AuthenticatorException("Could not authenticate " + token.getPrincipalName());
+		}
+		String userPassword = user.password;
 		if (userPassword != null && userPassword.equals(passwordToken.getPassword())) {
 			return load(token);
 		} else {
