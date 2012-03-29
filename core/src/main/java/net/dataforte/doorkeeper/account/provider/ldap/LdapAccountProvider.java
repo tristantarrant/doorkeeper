@@ -523,7 +523,7 @@ public class LdapAccountProvider extends AbstractAccountProvider {
 					for (; ne.hasMoreElements();) {
 						Attribute a = ne.nextElement();
 						if (a != null) {
-							String id = a.getID().toLowerCase();
+							String id = a.getID();
 							// If it's the memberOf field, handle the addGroups
 							if (id.equalsIgnoreCase(memberOfAttribute)) {
 								Set<String> groups = new HashSet<String>();
