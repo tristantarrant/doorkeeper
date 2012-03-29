@@ -72,9 +72,9 @@
 			<version>1.4</version>
 		</dependency>
 		<dependency>
-			<groupId>org.samba</groupId>
+			<groupId>jcifs</groupId>
 			<artifactId>jcifs</artifactId>
-			<version>1.3.14</version>
+			<version>1.3.17</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
@@ -91,7 +91,7 @@
 		<dependency>
 			<groupId>net.dataforte</groupId>
 			<artifactId>dataforte-commons</artifactId>
-			<version>0.0.6</version>
+			<version>0.0.7</version>
 		</dependency>
 		<dependency>
 			<groupId>org.json</groupId>
